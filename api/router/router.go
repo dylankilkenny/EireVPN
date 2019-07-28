@@ -4,17 +4,18 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"eirevpn/api/plan"
+	"eirevpn/api/user"
+
 	jwt_lib "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
-	"eirevpn/api/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 const secretkey = "verysecretkey1995"
 
-func SetupRouter(db *gorm.DB, logging bool) *gin.Engine {
+func SetupRouter(logging bool) *gin.Engine {
 	var router *gin.Engine
 
 	if logging {
@@ -32,15 +33,18 @@ func SetupRouter(db *gorm.DB, logging bool) *gin.Engine {
 	config.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
 	router.Use(cors.New(config))
 
-	router.Use(apiMiddleware(db))
-
 	public := router.Group("/api")
 	// private := router.Group("/api/private")
 	// secret := router.Group("/api/secret")
 
 	public.POST("/signup", user.SignUpUser)
-	// public.POST("/validate", user.ValidateToken)
 	public.POST("/login", user.LoginUser)
+	// public.POST("/validate", user.ValidateToken)
+	public.GET("/plan/:id", plan.Plan)
+	public.POST("/plan", plan.CreatePlan)
+	public.PUT("/plan", plan.UpdatePlan)
+	public.DELETE("/plan/:id", plan.DeletePlan)
+	public.GET("/plans", plan.AllPlans)
 	// private.Use(auth(secretkey))
 	// private.GET("/address", user.GetSubscribedAddresses)
 	// private.POST("/address", user.SubscribeToAddress)
@@ -48,13 +52,6 @@ func SetupRouter(db *gorm.DB, logging bool) *gin.Engine {
 	// secret.POST("/users", user.SubscribedUsers)
 
 	return router
-}
-
-func apiMiddleware(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("db", db)
-		c.Next()
-	}
 }
 
 func auth(secret string) gin.HandlerFunc {

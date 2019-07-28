@@ -1,13 +1,13 @@
 package models
 
 import (
-	"log"
 	"time"
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 )
 
+// UserPlan contains the details of which plans each user is signed up for
 type UserPlan struct {
 	BaseModel
 	UserID        uuid.UUID `json:"user_id"`
@@ -17,17 +17,14 @@ type UserPlan struct {
 	Status        int       `json:"status"`
 }
 
+// BeforeCreate sets the CreatedAt column to the current time
 func (userplan *UserPlan) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("CreatedAt", time.Now())
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		log.Println("Plan{} - UUID error")
-		panic(err)
-	}
-	scope.SetColumn("ID", uuid.String())
+
 	return nil
 }
 
+// BeforeUpdate sets the UpdatedAt column to the current time
 func (userplan *UserPlan) BeforeUpdate(scope *gorm.Scope) error {
 	scope.SetColumn("UpdatedAt", "check")
 	return nil

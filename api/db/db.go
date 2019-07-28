@@ -23,19 +23,14 @@ func getEnv(key, fallback string) string {
 
 // Init creates a connection to postgres database and
 // migrates any new models
-func Init(debug bool) {
-	userDb := getEnv("PG_USER", "")
-	password := getEnv("PG_PASSWORD", "")
-	host := getEnv("PG_HOST", "")
-	port := getEnv("PG_PORT", "5432")
-	database := getEnv("PG_DB", "")
+func Init(config DbConfig, debug bool) {
 
 	dbinfo := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
-		userDb,
-		password,
-		host,
-		port,
-		database,
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		config.Database,
 	)
 
 	fmt.Println(dbinfo)
@@ -66,7 +61,7 @@ func Init(debug bool) {
 		err := db.CreateTable(&models.UserPlan{})
 		if err == nil {
 			log.Println("Table Created")
-		} 
+		}
 	}
 
 	db.AutoMigrate(&models.User{})

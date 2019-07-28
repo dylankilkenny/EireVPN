@@ -1,14 +1,13 @@
 package models
 
 import (
-	"log"
 	"time"
 
-	uuid "github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User contains the users details
 type User struct {
 	BaseModel
 	FirstName string `json:"firstname"`
@@ -17,14 +16,11 @@ type User struct {
 	Password  string `json:"password" binding:"required"`
 }
 
+// BeforeCreate sets the CreatedAt column to the current time
+// and encrypts the users password
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("CreatedAt", time.Now())
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		log.Println("Uuid err")
-		panic(err)
-	}
-	scope.SetColumn("ID", uuid.String())
+
 	if pw, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost); err == nil {
 		scope.SetColumn("Password", string(pw))
 	}
@@ -32,7 +28,8 @@ func (user *User) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
+// BeforeUpdate sets the UpdatedAt column to the current time
 func (user *User) BeforeUpdate(scope *gorm.Scope) error {
-	scope.SetColumn("UpdatedAt", "check")
+	scope.SetColumn("UpdatedAt", time.Now())
 	return nil
 }

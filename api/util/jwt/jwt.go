@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: add this to env variables
 const secretkey = "verysecretkey1995"
 
 func Token(id string) (string, error) {
@@ -28,6 +29,9 @@ func Token(id string) (string, error) {
 // taken from https://godoc.org/github.com/dgrijalva/jwt-go#example-Parse--Hmac
 func Validate(c *gin.Context) (string, error) {
 	auth := c.Request.Header.Get("Authorization")
+	if auth == "" {
+		return "", fmt.Errorf("No token")
+	}
 	tokenString := strings.Split(auth, " ")[1]
 	token, err := jwt_lib.Parse(tokenString, func(token *jwt_lib.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -37,11 +41,14 @@ func Validate(c *gin.Context) (string, error) {
 		return []byte(secretkey), nil
 	})
 
+	if token == nil {
+		return "", fmt.Errorf("No token")
+	}
+
 	if claims, ok := token.Claims.(jwt_lib.MapClaims); ok && token.Valid {
 		return claims["Id"].(string), nil
-	} else {
-		return "", err
 	}
+	return "", err
 }
 
 func ValidateString(token string) (bool, error) {

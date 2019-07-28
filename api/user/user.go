@@ -4,27 +4,22 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
-	"eirevpn/api/util/jwt"
+	"eirevpn/api/db"
 	"eirevpn/api/models"
-)
+	"eirevpn/api/util/jwt"
 
-type subscribedAddressesResponse struct {
-	CreatedAt string `json:"created_at"`
-	Address   string `json:"address"`
-}
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+)
 
 type token struct {
 	Token string `json:"token" binding:"required"`
 }
- 
+
+// LoginUser verifies a users details are correct, returning a jwt token to the user
 func LoginUser(c *gin.Context) {
-	db, ok := c.MustGet("db").(*gorm.DB)
-	if !ok {
-		fmt.Println("Failed to fetch db")
-	}
+	db := db.GetDB()
+
 	var userLogin models.User
 	var userDb models.User
 
@@ -64,7 +59,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := jwt.Token(userDb.ID.String())
+	token, err := jwt.Token(string(userDb.ID))
 	if err != nil {
 		fmt.Printf("Error creating token for user %v", userDb.ID)
 	}
@@ -79,12 +74,9 @@ func LoginUser(c *gin.Context) {
 	})
 }
 
-
+// SignUpUser registers a new user
 func SignUpUser(c *gin.Context) {
-	db, ok := c.MustGet("db").(*gorm.DB)
-	if !ok {
-		fmt.Println("Failed to fetch db")
-	}
+	db := db.GetDB()
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {

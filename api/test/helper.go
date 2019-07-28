@@ -1,36 +1,42 @@
 package test
 
 import (
-	"fmt"
-	"log"
-
+	"eirevpn/api/db"
 	"eirevpn/api/models"
 	"eirevpn/api/util/jwt"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //db
 	_ "github.com/lib/pq"
 )
 
-var db *gorm.DB
 var err error
+var dbInstance *gorm.DB
+var r *gin.Engine
 
-func InitDB() *gorm.DB {
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
 
-	userDb := "dylankilkenny"
-	password := ""
-	host := "localhost"
-	port := "5432"
-	dbname := "test"
+// InitDB Creates a clean test database
+func InitDB() {
 
-	dbinfo := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
-		userDb,
-		password,
-		host,
-		port,
-		dbname,
-	)
+	conf := db.DbConfig{}
+	conf.Port = "5432"
+	conf.User = "test"
+	conf.Password = "test"
+	conf.Host = "localhost"
+	conf.Database = "eirevpn_test"
 
-	db, err = gorm.Open("postgres", dbinfo)
+	db.Init(conf, false)
+	dbInstance = db.GetDB()
 
 	if err != nil {
 		log.Println("Failed to connect to testing database")
@@ -39,27 +45,52 @@ func InitDB() *gorm.DB {
 	log.Println("Testing Database connected")
 
 	CreateCleanDB()
-
-	return db
 }
 
+// CreateUser adds a new user to the db and returns the object
 func CreateUser() *models.User {
 	user := models.User{FirstName: "Dylan", LastName: "Kilkenny", Email: "email@email.com", Password: "password"}
-	db.Create(&user)
+	err := dbInstance.Create(&user).Error
+	if err != nil {
+		fmt.Println("CreatUser() - ", err)
+	}
 	return &user
 }
 
-func CreateCleanDB() {
-	db.DropTableIfExists(&models.User{})
+func CreatePlan() *models.Plan {
+	intRef := func(i int) *int { return &i }
+	plan := models.Plan{
+		Name:           "test_plan",
+		Type:           "test",
+		DurationHours:  intRef(0),
+		DurationDays:   intRef(0),
+		DurationMonths: intRef(1),
+	}
+	err := dbInstance.Create(&plan).Error
+	if err != nil {
+		fmt.Println("CreatePlan() - ", err)
+	}
+	return &plan
+}
 
-	if !db.HasTable(&models.User{}) {
-		db.CreateTable(&models.User{})
+// CreateCleanDB drops exisitng tables and recreates them
+func CreateCleanDB() {
+	dbInstance.DropTableIfExists(&models.User{})
+	dbInstance.DropTableIfExists(&models.Plan{})
+
+	if !dbInstance.HasTable(&models.User{}) {
+		dbInstance.CreateTable(&models.User{})
+	}
+
+	if !dbInstance.HasTable(&models.Plan{}) {
+		dbInstance.CreateTable(&models.Plan{})
 	}
 
 }
 
+// GetToken fetches a jwt token for the given user
 func GetToken(u *models.User) (token string) {
-	token, err := jwt.Token(u.ID.String())
+	token, err := jwt.Token(string(u.ID))
 	if err != nil {
 		fmt.Printf("Error creating token for user %v", u.ID)
 	}

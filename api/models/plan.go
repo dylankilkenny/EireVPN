@@ -1,35 +1,44 @@
 package models
 
 import (
-	"log"
+	"fmt"
 	"time"
 
-	uuid "github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 )
 
+// Plan holds the detilas for a given vpn plan on offer
 type Plan struct {
 	BaseModel
-	Name           string `json:"name"`
-	Type           string `json:"type"`
-	DurationHours  int    `json:"duration_hours"`
-	DurationDays   int    `json:"duration_days"`
-	DurationMonths int    `json:"duration_months"`
-	Password       string `json:"password" binding:"required"`
+	Name           string `json:"name" binding:"required"`
+	Type           string `json:"type" binding:"required"`
+	DurationHours  *int   `json:"duration_hours" binding:"exists"`
+	DurationDays   *int   `json:"duration_days" binding:"exists"`
+	DurationMonths *int   `json:"duration_months" binding:"exists"`
 }
 
+// BeforeCreate sets the CreatedAt column to the current time
 func (plan *Plan) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("CreatedAt", time.Now())
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		log.Println("Plan{} - UUID error")
-		panic(err)
-	}
-	scope.SetColumn("ID", uuid.String())
+
 	return nil
 }
 
+// BeforeUpdate sets the UpdatedAt column to the current time
 func (plan *Plan) BeforeUpdate(scope *gorm.Scope) error {
-	scope.SetColumn("UpdatedAt", "check")
+	scope.SetColumn("UpdatedAt", time.Now())
 	return nil
+}
+
+// BeforeCreate sets the CreatedAt column to the current time
+func (plan *Plan) String() string {
+	return fmt.Sprintf(
+		"ID: %d, Name: %s, Type: %s, DurationHours: %d, DurationDays: %d, DurationMonths: %d",
+		plan.ID,
+		plan.Name,
+		plan.Type,
+		*plan.DurationHours,
+		*plan.DurationDays,
+		*plan.DurationMonths,
+	)
 }

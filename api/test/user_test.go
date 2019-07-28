@@ -3,30 +3,12 @@ package test
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
-	"eirevpn/api/router"
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
-
-var r *gin.Engine
-
-func TestMain(m *testing.M) {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	InitDB()
-	r = router.SetupRouter(db, false)
-	code := m.Run()
-	os.Exit(code)
-}
 
 func TestLoginRoute(t *testing.T) {
 
