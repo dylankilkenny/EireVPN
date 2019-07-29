@@ -34,18 +34,19 @@ func SetupRouter(logging bool) *gin.Engine {
 	router.Use(cors.New(config))
 
 	public := router.Group("/api")
-	// private := router.Group("/api/private")
+	private := router.Group("/api/private")
+	private.Use(auth(secretkey))
+
 	// secret := router.Group("/api/secret")
 
 	public.POST("/signup", user.SignUpUser)
 	public.POST("/login", user.LoginUser)
 	// public.POST("/validate", user.ValidateToken)
-	public.GET("/plan/:id", plan.Plan)
-	public.POST("/plan", plan.CreatePlan)
-	public.PUT("/plan", plan.UpdatePlan)
-	public.DELETE("/plan/:id", plan.DeletePlan)
-	public.GET("/plans", plan.AllPlans)
-	// private.Use(auth(secretkey))
+	private.GET("/plan/:id", plan.Plan)
+	private.POST("/plan", plan.CreatePlan)
+	private.PUT("/plan", plan.UpdatePlan)
+	private.DELETE("/plan/:id", plan.DeletePlan)
+	private.GET("/plans", plan.AllPlans)
 	// private.GET("/address", user.GetSubscribedAddresses)
 	// private.POST("/address", user.SubscribeToAddress)
 	// private.DELETE("/remove", user.RemoveSubscribedAddress)
@@ -63,8 +64,12 @@ func auth(secret string) gin.HandlerFunc {
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  "error",
-				"message": "invalid token",
+				"status": 401,
+				"errors": gin.H{
+					"title":  "Invalid Token",
+					"detail": "Token provided in auth header is not valid",
+				},
+				"data": make([]string, 0),
 			})
 		}
 	}

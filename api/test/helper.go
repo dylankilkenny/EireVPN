@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //db
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 )
 
 var err error
@@ -23,6 +25,14 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func assertCorrectStatusCode(t *testing.T, want, got int) {
+	t.Helper()
+	ok := assert.Equal(t, want, got)
+	if !ok {
+		t.Errorf("Status Code is not %v. Got %v", want, got)
+	}
 }
 
 // InitDB Creates a clean test database
@@ -85,7 +95,10 @@ func CreateCleanDB() {
 	if !dbInstance.HasTable(&models.Plan{}) {
 		dbInstance.CreateTable(&models.Plan{})
 	}
+}
 
+func DropPlanTable() {
+	dbInstance.DropTableIfExists(&models.Plan{})
 }
 
 // GetToken fetches a jwt token for the given user

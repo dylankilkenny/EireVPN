@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginRoute(t *testing.T) {
@@ -22,14 +20,6 @@ func TestLoginRoute(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 		return w.Code
-	}
-
-	assertCorrectStatusCode := func(t *testing.T, want, got int) {
-		t.Helper()
-		ok := assert.Equal(t, want, got)
-		if !ok {
-			t.Errorf("Status Code is not %v. Got %v", want, got)
-		}
 	}
 
 	t.Run("Successful login", func(t *testing.T) {
@@ -75,14 +65,6 @@ func TestSignUpRoute(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 		return w.Code
-	}
-
-	assertCorrectStatusCode := func(t *testing.T, want, got int) {
-		t.Helper()
-		ok := assert.Equal(t, want, got)
-		if !ok {
-			t.Errorf("Status Code is not %v. Got %v", want, got)
-		}
 	}
 
 	t.Run("Successful Sign Up", func(t *testing.T) {

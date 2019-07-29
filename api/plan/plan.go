@@ -3,7 +3,7 @@ package plan
 import (
 	"eirevpn/api/db"
 	"eirevpn/api/models"
-	"eirevpn/api/util/jwt"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,19 +14,6 @@ func Plan(c *gin.Context) {
 	id := c.Param("id")
 	db := db.GetDB()
 	var p models.Plan
-
-	_, err := jwt.Validate(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
-			"errors": gin.H{
-				"title":  "Invalid Token",
-				"detail": "Token provided in auth header is not valid",
-			},
-			"data": make([]string, 0),
-		})
-		return
-	}
 
 	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -66,20 +53,19 @@ func CreatePlan(c *gin.Context) {
 		})
 		return
 	}
-	_, err := jwt.Validate(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
+
+	if err := db.Create(&p).Error; err != nil {
+		fmt.Println("CreatePlan() -> ", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"status": 500,
 			"errors": gin.H{
-				"title":  "Invalid Token",
-				"detail": "Token provided in auth header is not valid",
+				"title":  "Internal Server Error",
+				"detail": "An unkown error occured",
 			},
 			"data": make([]string, 0),
 		})
-		return
 	}
 
-	db.Create(&p)
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"errors": make([]string, 0),
@@ -102,19 +88,6 @@ func DeletePlan(c *gin.Context) {
 			"errors": gin.H{
 				"title":  "Plan Not Found",
 				"detail": "No plan was found matching the queried id",
-			},
-			"data": make([]string, 0),
-		})
-		return
-	}
-
-	_, err := jwt.Validate(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
-			"errors": gin.H{
-				"title":  "Invalid Token",
-				"detail": "Token provided in auth header is not valid",
 			},
 			"data": make([]string, 0),
 		})
@@ -146,20 +119,18 @@ func UpdatePlan(c *gin.Context) {
 		})
 		return
 	}
-	_, err := jwt.Validate(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
+
+	if err := db.Save(&p).Error; err != nil {
+		fmt.Println("UpdatePlan() -> ", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"status": 500,
 			"errors": gin.H{
-				"title":  "Invalid Token",
-				"detail": "Token provided in auth header is not valid",
+				"title":  "Internal Server Error",
+				"detail": "An unkown error occured",
 			},
 			"data": make([]string, 0),
 		})
-		return
 	}
-
-	db.Save(&p)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
@@ -173,20 +144,19 @@ func AllPlans(c *gin.Context) {
 	db := db.GetDB()
 	var plans []models.Plan
 
-	_, err := jwt.Validate(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
+	if err := db.Find(&plans).Error; err != nil {
+		fmt.Println("AllPlans() -> ", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"status": 500,
 			"errors": gin.H{
-				"title":  "Invalid Token",
-				"detail": "Token provided in auth header is not valid",
+				"title":  "Internal Server Error",
+				"detail": "An unkown error occured",
 			},
 			"data": make([]string, 0),
 		})
-		return
 	}
 
-	if err := db.Find(&plans).Error; err != nil {
+	if len(plans) == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"status": 400,
 			"errors": gin.H{

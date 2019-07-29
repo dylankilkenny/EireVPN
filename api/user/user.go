@@ -104,6 +104,7 @@ func SignUpUser(c *gin.Context) {
 	}
 
 	db.Create(&user)
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"errors": make([]string, 0),

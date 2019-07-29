@@ -3,6 +3,7 @@ package jwt
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	jwt_lib "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -11,12 +12,15 @@ import (
 // TODO: add this to env variables
 const secretkey = "verysecretkey1995"
 
+// Token creates a jwt token from the user ID. This token will
+// expire in 1 hour
 func Token(id string) (string, error) {
 	// Create the token
 	token := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
 	// Set some claims
 	token.Claims = jwt_lib.MapClaims{
-		"Id": id,
+		"Id":  id,
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	}
 	// Sign and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(secretkey))
@@ -26,7 +30,7 @@ func Token(id string) (string, error) {
 	return tokenString, nil
 }
 
-// taken from https://godoc.org/github.com/dgrijalva/jwt-go#example-Parse--Hmac
+// Validate is taken from https://godoc.org/github.com/dgrijalva/jwt-go#example-Parse--Hmac
 func Validate(c *gin.Context) (string, error) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
@@ -51,6 +55,7 @@ func Validate(c *gin.Context) (string, error) {
 	return "", err
 }
 
+// Validate token string
 func ValidateString(token string) (bool, error) {
 	_, err := jwt_lib.Parse(token, func(token *jwt_lib.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
