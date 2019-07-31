@@ -64,9 +64,17 @@ func Init(config DbConfig, debug bool) {
 		}
 	}
 
+	if !db.HasTable(&models.UserSession{}) {
+		err := db.CreateTable(&models.UserSession{})
+		if err == nil {
+			log.Println("Table Created")
+		}
+	}
+
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Plan{})
 	db.AutoMigrate(&models.UserPlan{})
+	db.AutoMigrate(&models.UserSession{})
 }
 
 //GetDB ...

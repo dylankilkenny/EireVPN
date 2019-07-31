@@ -102,10 +102,14 @@ func DropPlanTable() {
 }
 
 // GetToken fetches a jwt token for the given user
-func GetToken(u *models.User) (token string) {
-	token, err := jwt.Token(string(u.ID))
+func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
+	var usersession models.UserSession
+	usersession.UserID = u.ID
+	dbInstance.Create(&usersession)
+	authToken, refreshToken, csrfToken, err := jwt.Token(usersession)
 	if err != nil {
-		fmt.Printf("Error creating token for user %v", u.ID)
+		//TODO: add internal server error response here
+		fmt.Printf("Error creating auth token for user ")
 	}
 	return
 }
