@@ -23,13 +23,13 @@ func Token(usersession models.UserSession) (string, string, string, error) {
 	csrfToken, _ := random.GenerateRandomString(64)
 	authToken.Claims = jwt_lib.MapClaims{
 		"Id":   usersession.UserID,
-		"exp":  time.Now().Add(time.Second * 1).Unix(),
+		"exp":  time.Now().Add(time.Minute * 15).Unix(),
 		"csrf": csrfToken,
 	}
 	refreshToken.Claims = jwt_lib.MapClaims{
 		"Id":         usersession.UserID,
 		"Identifier": usersession.Identifier,
-		"exp":        time.Now().Add(time.Second * 1).Unix(),
+		"exp":        time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Sign and get the complete encoded token as a string
 	authTokenString, err := authToken.SignedString([]byte(secretkey))

@@ -2,10 +2,13 @@ package test
 
 import (
 	"eirevpn/api/db"
+	"eirevpn/api/errors"
 	"eirevpn/api/models"
 	"eirevpn/api/util/jwt"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -27,11 +30,29 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func assertCorrectStatusCode(t *testing.T, want, got int) {
+func assertCorrectStatus(t *testing.T, want, got int) {
 	t.Helper()
 	ok := assert.Equal(t, want, got)
 	if !ok {
-		t.Errorf("Status Code is not %v. Got %v", want, got)
+		t.Errorf("Status is not %v. Got %v", want, got)
+	}
+}
+
+func bindError(resp *httptest.ResponseRecorder) errors.APIError {
+	decoder := json.NewDecoder(resp.Body)
+	var apiErr errors.APIError
+	err := decoder.Decode(&apiErr)
+	if err != nil {
+		panic(err)
+	}
+	return apiErr
+}
+
+func assertCorrectCode(t *testing.T, want, got string) {
+	t.Helper()
+	ok := assert.Equal(t, want, got)
+	if !ok {
+		t.Errorf("Code is not %v. Got %v", want, got)
 	}
 }
 
@@ -87,6 +108,7 @@ func CreatePlan() *models.Plan {
 func CreateCleanDB() {
 	dbInstance.DropTableIfExists(&models.User{})
 	dbInstance.DropTableIfExists(&models.Plan{})
+	dbInstance.DropTableIfExists(&models.UserSession{})
 
 	if !dbInstance.HasTable(&models.User{}) {
 		dbInstance.CreateTable(&models.User{})
@@ -94,6 +116,10 @@ func CreateCleanDB() {
 
 	if !dbInstance.HasTable(&models.Plan{}) {
 		dbInstance.CreateTable(&models.Plan{})
+	}
+
+	if !dbInstance.HasTable(&models.UserSession{}) {
+		dbInstance.CreateTable(&models.UserSession{})
 	}
 }
 
@@ -112,4 +138,10 @@ func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
 		fmt.Printf("Error creating auth token for user ")
 	}
 	return
+}
+
+func DeleteIdentifier(u *models.User) {
+	var usersession models.UserSession
+	dbInstance.Where("user_id = ?", u.ID).First(&usersession)
+	dbInstance.Delete(&usersession)
 }

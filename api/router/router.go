@@ -2,11 +2,11 @@ package router
 
 import (
 	"eirevpn/api/db"
+	"eirevpn/api/errors"
 	"eirevpn/api/models"
 	"eirevpn/api/util/jwt"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"eirevpn/api/plan"
 	"eirevpn/api/user"
@@ -36,6 +36,7 @@ func SetupRouter(logging bool) *gin.Engine {
 	router.Use(cors.New(config))
 
 	public := router.Group("/api")
+
 	private := router.Group("/api/private")
 	private.Use(auth(secretkey))
 
@@ -64,29 +65,15 @@ func auth(secret string) gin.HandlerFunc {
 		authToken, err := c.Request.Cookie("authToken")
 		if err != nil || authToken.Value == "" {
 			fmt.Println("no authToken")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status": 401,
-				"errors": gin.H{
-					"title":  "Auth Cookie",
-					"detail": "Auth Cookie is missing",
-				},
-				"data": make([]string, 0),
-			})
+			c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
 			return
 		}
 
 		// Fetch refresh token
 		refreshToken, err := c.Request.Cookie("refreshToken")
-		if err != nil {
+		if err != nil || refreshToken.Value == "" {
 			fmt.Println("no refreshToken")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status": 401,
-				"errors": gin.H{
-					"title":  "Refresh Cookie",
-					"detail": "Refresh Cookie is missing",
-				},
-				"data": make([]string, 0),
-			})
+			c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
 			return
 		}
 
@@ -98,15 +85,7 @@ func auth(secret string) gin.HandlerFunc {
 			refreshClaims, err := jwt.ValidateRefreshToken(refreshToken.Value)
 			if err != nil {
 				fmt.Println("Token Invalid")
-
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"status": 401,
-					"errors": gin.H{
-						"title":  "Token Invalid",
-						"detail": "refresh token invalid",
-					},
-					"data": make([]string, 0),
-				})
+				c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
 				return
 			}
 
@@ -119,6 +98,7 @@ func auth(secret string) gin.HandlerFunc {
 			if !ok {
 				fmt.Println("refreshClaims['Identifier'].(uint) -> Type assetion error")
 			}
+
 			usersession := models.UserSession{
 				UserID:     UserID,
 				Identifier: userSessionIdentifier,
@@ -129,14 +109,7 @@ func auth(secret string) gin.HandlerFunc {
 				fmt.Println("Invlaid identifier")
 
 				c.SetCookie("refreshToken", "", -1, "/", "localhost", true, false)
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"status": 401,
-					"errors": gin.H{
-						"title":  "Invlaid identifier",
-						"detail": "Invlaid identifier",
-					},
-					"data": make([]string, 0),
-				})
+				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
 				return
 			}
 		}
@@ -144,14 +117,7 @@ func auth(secret string) gin.HandlerFunc {
 		// If auth token is valid check if crsf token matches the one supplied
 		// in the header
 		if authClaims["csrf"] != c.GetHeader("X-CSRF-Token") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status": 401,
-				"errors": gin.H{
-					"title":  "CSRF",
-					"detail": "CSRF token is invalid",
-				},
-				"data": make([]string, 0),
-			})
+			c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
 			return
 		}
 	}

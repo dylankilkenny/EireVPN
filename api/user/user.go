@@ -1,16 +1,21 @@
 package user
 
 import (
-	"fmt"
+	"eirevpn/api/logger"
 	"net/http"
+	"time"
 
 	"eirevpn/api/db"
+	"eirevpn/api/errors"
 	"eirevpn/api/models"
 	"eirevpn/api/util/jwt"
 
 	"github.com/gin-gonic/gin"
+	logrus "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var t = time.Now()
 
 type token struct {
 	Token string `json:"token" binding:"required"`
@@ -24,51 +29,56 @@ func LoginUser(c *gin.Context) {
 	var userDb models.User
 
 	if err := c.BindJSON(&userLogin); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Email or password missing",
-				"detail": "Email or password missing",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/login - LoginUser()",
+			"Code:":  errors.EmailOrPassword.Code,
+			"Email:": userLogin.Email,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.EmailOrPassword.Status, errors.EmailOrPassword)
 		return
 	}
 
 	if err := db.Where("email = ?", userLogin.Email).First(&userDb).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"status": 404,
-			"errors": gin.H{
-				"title":  "Email Not Found",
-				"detail": "No matching email address was found",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/login - LoginUser()",
+			"Code:":  errors.EmailNotFound.Code,
+			"Email:": userLogin.Email,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.EmailNotFound.Status, errors.EmailNotFound)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(userLogin.Password)); err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
-			"errors": gin.H{
-				"title":  "Wrong Password",
-				"detail": "password is incorrect",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/login - LoginUser()",
+			"Code:":  errors.WrongPassword.Code,
+			"Email:": userLogin.Email,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.WrongPassword.Status, errors.WrongPassword)
 		return
 	}
 
 	var usersession models.UserSession
 	usersession.UserID = userDb.ID
 	if err := db.Create(&usersession).Error; err != nil {
-		fmt.Printf("Error creating models.UserSession %v", userDb.ID)
+		logger.Log(logrus.Fields{
+			"Loc:":    "/login - LoginUser()",
+			"Code:":   errors.InternalServerError.Code,
+			"UserID:": userDb.ID,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
 	}
 
 	authToken, refreshToken, csrfToken, err := jwt.Token(usersession)
 	if err != nil {
-		//TODO: add internal server error response here
-		fmt.Printf("Error creating auth token for user %v", userDb.ID)
+		logger.Log(logrus.Fields{
+			"Loc:":    "/login - LoginUser()",
+			"Code:":   errors.InternalServerError.Code,
+			"UserID:": userDb.ID,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
 	}
 
 	// TODO: Change the domain name and add correct maxAge time
@@ -93,34 +103,37 @@ func SignUpUser(c *gin.Context) {
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Invalid Form",
-				"detail": "The submitted form is not valid",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/signup - SignUpUser()",
+			"Code:":  errors.InvalidForm.Code,
+			"Email:": user.Email,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Where("email = ?", user.Email).First(&user).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Email Taken",
-				"detail": "email already exists",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/signup - SignUpUser()",
+			"Code:":  errors.EmailTaken.Code,
+			"Email:": user.Email,
+		}, err.Error())
+		c.JSON(errors.EmailTaken.Status, errors.EmailTaken)
 		return
 	}
 
-	db.Create(&user)
+	if err := db.Create(&user).Error; err != nil {
+		logger.Log(logrus.Fields{
+			"Loc:":   "/signup - SignUpUser()",
+			"Code:":  errors.InternalServerError.Code,
+			"Email:": user.Email,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
-		"errors": make([]string, 0),
 		"data":   make([]string, 0),
 	})
 }
@@ -132,14 +145,7 @@ func ChangePasswordRequest(c *gin.Context) {
 	var user models.User
 
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"status": 404,
-			"errors": gin.H{
-				"title":  "Email Not Found",
-				"detail": "No matching email address was found",
-			},
-			"data": make([]string, 0),
-		})
+		c.AbortWithStatusJSON(errors.EmailNotFound.Status, errors.EmailNotFound)
 		return
 	}
 

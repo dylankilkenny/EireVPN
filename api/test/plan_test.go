@@ -32,7 +32,7 @@ func TestGetPlanRoute(t *testing.T) {
 		plan := CreatePlan()
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan.ID)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -41,7 +41,7 @@ func TestGetPlanRoute(t *testing.T) {
 	// 	want := 401
 	// 	plan := CreatePlan()
 	// 	got := makeRequest(t, token, plan.ID)
-	// 	assertCorrectStatusCode(t, want, got)
+	// 	assertCorrectStatus(t, want, got)
 	// 	CreateCleanDB()
 	// })
 
@@ -51,7 +51,7 @@ func TestGetPlanRoute(t *testing.T) {
 		want := 400
 		planID := uint(999)
 		got := makeRequest(t, authToken, refreshToken, csrfToken, planID)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
@@ -84,7 +84,7 @@ func TestCreatePlanRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -100,7 +100,7 @@ func TestCreatePlanRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
 		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -117,7 +117,7 @@ func TestCreatePlanRoute(t *testing.T) {
 		want := 500
 		DropPlanTable()
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
@@ -143,7 +143,7 @@ func TestAllPlansRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -152,7 +152,7 @@ func TestAllPlansRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -162,7 +162,7 @@ func TestAllPlansRoute(t *testing.T) {
 		want := 500
 		DropPlanTable()
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
@@ -195,7 +195,7 @@ func TestUpdatePlanRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -212,7 +212,7 @@ func TestUpdatePlanRoute(t *testing.T) {
 		want := 500
 		DropPlanTable()
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -228,7 +228,7 @@ func TestUpdatePlanRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
 		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
@@ -255,7 +255,7 @@ func TestDeletePlanRoute(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken, plan.ID)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -265,7 +265,7 @@ func TestDeletePlanRoute(t *testing.T) {
 		want := 400
 		planID := uint(999)
 		got := makeRequest(t, authToken, refreshToken, csrfToken, planID)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }

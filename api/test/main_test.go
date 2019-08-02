@@ -1,6 +1,7 @@
 package test
 
 import (
+	"eirevpn/api/logger"
 	"eirevpn/api/router"
 	"net/http"
 	"net/http/httptest"
@@ -12,13 +13,14 @@ import (
 func TestMain(m *testing.M) {
 	InitDB()
 	r = router.SetupRouter(false)
+	logger.Init(true)
 	code := m.Run()
 	os.Exit(code)
 }
 
 func TestAuthTokens(t *testing.T) {
 
-	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) int {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) *httptest.ResponseRecorder {
 		t.Helper()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/api/private/plans", nil)
@@ -28,7 +30,7 @@ func TestAuthTokens(t *testing.T) {
 		req.AddCookie(&authCookie)
 		req.AddCookie(&refreshCookie)
 		r.ServeHTTP(w, req)
-		return w.Code
+		return w
 	}
 
 	t.Run("Successful Authentification", func(t *testing.T) {
@@ -37,17 +39,68 @@ func TestAuthTokens(t *testing.T) {
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got.Code)
 		CreateCleanDB()
 	})
 
-	t.Run("No Auth Token", func(t *testing.T) {
+	t.Run("No Auth cookie", func(t *testing.T) {
 		user := CreateUser()
-		_ = CreatePlan()
 		_, refreshToken, csrfToken := GetToken(user)
-		want := 401
-		got := makeRequest(t, "", refreshToken, csrfToken)
-		assertCorrectStatusCode(t, want, got)
+		wantStatus := 401
+		wantCode := "AUTHCOOKMISS"
+		resp := makeRequest(t, "", refreshToken, csrfToken)
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
+		CreateCleanDB()
+	})
+
+	t.Run("No refresh cookie", func(t *testing.T) {
+		user := CreateUser()
+		authToken, _, csrfToken := GetToken(user)
+		wantStatus := 401
+		wantCode := "REFCOOKMISS"
+		resp := makeRequest(t, authToken, "", csrfToken)
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
+		CreateCleanDB()
+	})
+
+	t.Run("Token invalid", func(t *testing.T) {
+		user := CreateUser()
+		authToken, refreshToken, csrfToken := GetToken(user)
+		wantStatus := 401
+		wantCode := "TOKENINVALID"
+		resp := makeRequest(t, authToken+"p", refreshToken+"33333", csrfToken)
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
+		CreateCleanDB()
+	})
+
+	t.Run("Invalid identifier", func(t *testing.T) {
+		user := CreateUser()
+		authToken, refreshToken, csrfToken := GetToken(user)
+		DeleteIdentifier(user)
+		wantStatus := 401
+		wantCode := "INVIDENTIFIER"
+		resp := makeRequest(t, authToken+"p", refreshToken, csrfToken)
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
+		CreateCleanDB()
+	})
+
+	t.Run("CSRF Invalid", func(t *testing.T) {
+		user := CreateUser()
+		authToken, refreshToken, _ := GetToken(user)
+		wantStatus := 401
+		wantCode := "CSRFTOKEN"
+		resp := makeRequest(t, authToken, refreshToken, "")
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
 		CreateCleanDB()
 	})
 }

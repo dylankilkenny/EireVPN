@@ -1,6 +1,7 @@
 package main
 
 import (
+	"eirevpn/api/logger"
 	"eirevpn/api/router"
 	"os"
 
@@ -24,6 +25,8 @@ func main() {
 	config := db.DbConfig{}
 	config.Load()
 	db.Init(config, debugMode)
+
+	logger.Init(logging)
 
 	r := router.SetupRouter(logging)
 	r.Run(":" + os.Getenv("PORT"))

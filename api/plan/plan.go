@@ -2,9 +2,12 @@ package plan
 
 import (
 	"eirevpn/api/db"
+	"eirevpn/api/errors"
+	"eirevpn/api/logger"
 	"eirevpn/api/models"
-	"fmt"
 	"net/http"
+
+	logrus "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,14 +19,12 @@ func Plan(c *gin.Context) {
 	var p models.Plan
 
 	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Plan Not Found",
-				"detail": "No plan was found matching the queried id",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":    "/plan/:id - Plan()",
+			"Code:":   errors.PlanNotFound.Code,
+			"PlanID:": id,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 		return
 	}
 
@@ -43,27 +44,21 @@ func CreatePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := c.BindJSON(&p); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Invalid Form",
-				"detail": "The submitted form is not valid",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":  "/plan - CreatePlan()",
+			"Code:": errors.InvalidForm.Code,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Create(&p).Error; err != nil {
-		fmt.Println("CreatePlan() -> ", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"status": 500,
-			"errors": gin.H{
-				"title":  "Internal Server Error",
-				"detail": "An unkown error occured",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":  "/plan - CreatePlan()",
+			"Code:": errors.InternalServerError.Code,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -83,18 +78,24 @@ func DeletePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Plan Not Found",
-				"detail": "No plan was found matching the queried id",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/plan/:id - DeletePlan()",
+			"Code:":  errors.PlanNotFound.Code,
+			"PlanID": id,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 		return
 	}
 
-	db.Delete(&p)
+	if err := db.Delete(&p).Error; err != nil {
+		logger.Log(logrus.Fields{
+			"Loc:":   "/plan/:id - DeletePlan()",
+			"Code:":  errors.InternalServerError.Code,
+			"PlanID": id,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
@@ -109,27 +110,22 @@ func UpdatePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := c.BindJSON(&p); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "Invalid Form",
-				"detail": "The submitted form is not valid",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/plan - UpdatePlan()",
+			"Code:":  errors.InvalidForm.Code,
+			"PlanID": p.ID,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Save(&p).Error; err != nil {
-		fmt.Println("UpdatePlan() -> ", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"status": 500,
-			"errors": gin.H{
-				"title":  "Internal Server Error",
-				"detail": "An unkown error occured",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":   "/plan - UpdatePlan()",
+			"Code:":  errors.InternalServerError.Code,
+			"PlanID": p.ID,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -145,26 +141,15 @@ func AllPlans(c *gin.Context) {
 	var plans []models.Plan
 
 	if err := db.Find(&plans).Error; err != nil {
-		fmt.Println("AllPlans() -> ", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"status": 500,
-			"errors": gin.H{
-				"title":  "Internal Server Error",
-				"detail": "An unkown error occured",
-			},
-			"data": make([]string, 0),
-		})
+		logger.Log(logrus.Fields{
+			"Loc:":  "/plans - AllPlans()",
+			"Code:": errors.InternalServerError.Code,
+		}, err.Error())
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 
 	if len(plans) == 0 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"status": 400,
-			"errors": gin.H{
-				"title":  "No Plans Found",
-				"detail": "There were no plans found",
-			},
-			"data": make([]string, 0),
-		})
+		c.AbortWithStatusJSON(errors.NoPlansFound.Status, errors.NoPlansFound)
 		return
 	}
 

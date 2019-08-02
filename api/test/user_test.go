@@ -26,7 +26,7 @@ func TestLoginRoute(t *testing.T) {
 		_ = CreateUser()
 		want := 200
 		got := makeRequest(t, credentials)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
@@ -34,13 +34,13 @@ func TestLoginRoute(t *testing.T) {
 		emptyCredentials := map[string]string{"email": "", "password": ""}
 		want := 400
 		got := makeRequest(t, emptyCredentials)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 	})
 
 	t.Run("Email Not Found", func(t *testing.T) {
-		want := 404
+		want := 400
 		got := makeRequest(t, credentials)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 	})
 
 	t.Run("Wrong password", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestLoginRoute(t *testing.T) {
 		_ = CreateUser()
 		want := 401
 		got := makeRequest(t, credentials)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
@@ -70,21 +70,21 @@ func TestSignUpRoute(t *testing.T) {
 	t.Run("Successful Sign Up", func(t *testing.T) {
 		want := 200
 		got := makeRequest(t, signup)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 	})
 
 	t.Run("Invalid form", func(t *testing.T) {
 		signup = map[string]string{"email": "", "password": ""}
 		want := 400
 		got := makeRequest(t, signup)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 	})
 
 	t.Run("Email already exists", func(t *testing.T) {
 		_ = CreateUser()
 		want := 400
 		got := makeRequest(t, signup)
-		assertCorrectStatusCode(t, want, got)
+		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
