@@ -7,8 +7,6 @@ import (
 	"eirevpn/api/models"
 	"net/http"
 
-	logrus "github.com/sirupsen/logrus"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,11 +17,12 @@ func Plan(c *gin.Context) {
 	var p models.Plan
 
 	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":    "/plan/:id - Plan()",
-			"Code:":   errors.PlanNotFound.Code,
-			"PlanID:": id,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/plan/:id - Plan()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"PlanID": id},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 		return
 	}
@@ -44,19 +43,21 @@ func CreatePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := c.BindJSON(&p); err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":  "/plan - CreatePlan()",
-			"Code:": errors.InvalidForm.Code,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:  "/plan - CreatePlan()",
+			Code: errors.InvalidForm.Code,
+			Err:  err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Create(&p).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":  "/plan - CreatePlan()",
-			"Code:": errors.InternalServerError.Code,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:  "/plan - CreatePlan()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
 	}
@@ -78,21 +79,23 @@ func DeletePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/plan/:id - DeletePlan()",
-			"Code:":  errors.PlanNotFound.Code,
-			"PlanID": id,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/plan/:id - DeletePlan()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"PlanID": id},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 		return
 	}
 
 	if err := db.Delete(&p).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/plan/:id - DeletePlan()",
-			"Code:":  errors.InternalServerError.Code,
-			"PlanID": id,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/plan/:id - DeletePlan()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"PlanID": id},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
 	}
@@ -110,21 +113,23 @@ func UpdatePlan(c *gin.Context) {
 	var p models.Plan
 
 	if err := c.BindJSON(&p); err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/plan - UpdatePlan()",
-			"Code:":  errors.InvalidForm.Code,
-			"PlanID": p.ID,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/plan - UpdatePlan()",
+			Code:  errors.InvalidForm.Code,
+			Extra: map[string]interface{}{"PlanID": p.ID},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Save(&p).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/plan - UpdatePlan()",
-			"Code:":  errors.InternalServerError.Code,
-			"PlanID": p.ID,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/plan - UpdatePlan()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"PlanID": p.ID},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 
@@ -141,10 +146,11 @@ func AllPlans(c *gin.Context) {
 	var plans []models.Plan
 
 	if err := db.Find(&plans).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":  "/plans - AllPlans()",
-			"Code:": errors.InternalServerError.Code,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:  "/plan - AllPlans()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 

@@ -11,7 +11,6 @@ import (
 	"eirevpn/api/util/jwt"
 
 	"github.com/gin-gonic/gin"
-	logrus "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -29,31 +28,34 @@ func LoginUser(c *gin.Context) {
 	var userDb models.User
 
 	if err := c.BindJSON(&userLogin); err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/login - LoginUser()",
-			"Code:":  errors.EmailOrPassword.Code,
-			"Email:": userLogin.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/login - LoginUser()",
+			Code:  errors.EmailOrPassword.Code,
+			Extra: map[string]interface{}{"Email": userLogin.Email},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.EmailOrPassword.Status, errors.EmailOrPassword)
 		return
 	}
 
 	if err := db.Where("email = ?", userLogin.Email).First(&userDb).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/login - LoginUser()",
-			"Code:":  errors.EmailNotFound.Code,
-			"Email:": userLogin.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/login - LoginUser()",
+			Code:  errors.EmailNotFound.Code,
+			Extra: map[string]interface{}{"Email": userLogin.Email},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.EmailNotFound.Status, errors.EmailNotFound)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(userLogin.Password)); err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/login - LoginUser()",
-			"Code:":  errors.WrongPassword.Code,
-			"Email:": userLogin.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/login - LoginUser()",
+			Code:  errors.WrongPassword.Code,
+			Extra: map[string]interface{}{"Email": userLogin.Email},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.WrongPassword.Status, errors.WrongPassword)
 		return
 	}
@@ -61,22 +63,24 @@ func LoginUser(c *gin.Context) {
 	var usersession models.UserSession
 	usersession.UserID = userDb.ID
 	if err := db.Create(&usersession).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":    "/login - LoginUser()",
-			"Code:":   errors.InternalServerError.Code,
-			"UserID:": userDb.ID,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/login - LoginUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": userDb.ID},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
 	}
 
 	authToken, refreshToken, csrfToken, err := jwt.Token(usersession)
 	if err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":    "/login - LoginUser()",
-			"Code:":   errors.InternalServerError.Code,
-			"UserID:": userDb.ID,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/login - LoginUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": userDb.ID},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
 	}
@@ -103,31 +107,34 @@ func SignUpUser(c *gin.Context) {
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/signup - SignUpUser()",
-			"Code:":  errors.InvalidForm.Code,
-			"Email:": user.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.InvalidForm.Code,
+			Extra: map[string]interface{}{"Email": user.Email},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
 	if err := db.Where("email = ?", user.Email).First(&user).Error; err == nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/signup - SignUpUser()",
-			"Code:":  errors.EmailTaken.Code,
-			"Email:": user.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.EmailTaken.Code,
+			Extra: map[string]interface{}{"Email": user.Email},
+			Err:   err.Error(),
+		})
 		c.JSON(errors.EmailTaken.Status, errors.EmailTaken)
 		return
 	}
 
 	if err := db.Create(&user).Error; err != nil {
-		logger.Log(logrus.Fields{
-			"Loc:":   "/signup - SignUpUser()",
-			"Code:":  errors.InternalServerError.Code,
-			"Email:": user.Email,
-		}, err.Error())
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"Email": user.Email},
+			Err:   err.Error(),
+		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
 	}
