@@ -13,7 +13,7 @@ import (
 func TestMain(m *testing.M) {
 	InitDB()
 	r = router.SetupRouter(false)
-	logger.Init(true)
+	logger.Init(false)
 	code := m.Run()
 	os.Exit(code)
 }
@@ -24,11 +24,13 @@ func TestAuthTokens(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/api/private/plans", nil)
-		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
-		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
+		if authToken != "" {
+			req.AddCookie(&http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)})
+		}
+		if refreshToken != "" {
+			req.AddCookie(&http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)})
+		}
 		req.Header.Set("X-CSRF-Token", csrfToken)
-		req.AddCookie(&authCookie)
-		req.AddCookie(&refreshCookie)
 		r.ServeHTTP(w, req)
 		return w
 	}

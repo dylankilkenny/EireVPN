@@ -88,6 +88,7 @@ func CreateUser() *models.User {
 	return &user
 }
 
+// CreatePlan creates a new plan record in the db
 func CreatePlan() *models.Plan {
 	intRef := func(i int) *int { return &i }
 	plan := models.Plan{
@@ -123,6 +124,7 @@ func CreateCleanDB() {
 	}
 }
 
+// DropPlanTable dros the plan table from the db
 func DropPlanTable() {
 	dbInstance.DropTableIfExists(&models.Plan{})
 }
@@ -132,7 +134,7 @@ func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
 	var usersession models.UserSession
 	usersession.UserID = u.ID
 	dbInstance.Create(&usersession)
-	authToken, refreshToken, csrfToken, err := jwt.Token(usersession)
+	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
 	if err != nil {
 		//TODO: add internal server error response here
 		fmt.Printf("Error creating auth token for user ")
@@ -140,6 +142,7 @@ func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
 	return
 }
 
+// DeleteIdentifier removes the users session identifier
 func DeleteIdentifier(u *models.User) {
 	var usersession models.UserSession
 	dbInstance.Where("user_id = ?", u.ID).First(&usersession)

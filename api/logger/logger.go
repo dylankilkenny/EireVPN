@@ -29,12 +29,12 @@ func Log(fields Fields) {
 			if k == "Err" {
 				v = strings.Replace(v.(string), "\n", " ", -1)
 			}
-			field := fmt.Sprintf("%s:%v    ", Bold(BrightRed(k)), v)
+			field := fmt.Sprintf("%s: %v    ", Bold(BrightRed(k)), v)
 			str.WriteString(field)
 		}
-		str.WriteString(fmt.Sprintf("%s:%v    ", Bold(BrightRed("Code")), fields.Code))
-		str.WriteString(fmt.Sprintf("%s:%v    ", Bold(BrightRed("Loc")), fields.Loc))
-		str.WriteString(fmt.Sprintf("%s:%v    ", Bold(BrightRed("Err")), fields.Err))
+		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Code")), fields.Code))
+		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Loc")), fields.Loc))
+		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Err")), fields.Err))
 		fmt.Println(str.String())
 	}
 }

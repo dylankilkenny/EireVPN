@@ -3,7 +3,6 @@ package user
 import (
 	"eirevpn/api/logger"
 	"net/http"
-	"time"
 
 	"eirevpn/api/db"
 	"eirevpn/api/errors"
@@ -14,10 +13,27 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var t = time.Now()
-
 type token struct {
 	Token string `json:"token" binding:"required"`
+}
+
+func CreateSession(userID uint) (models.UserSession, error) {
+
+	var usersession models.UserSession
+	db := db.GetDB()
+
+	// Remove any existing user sessions
+	if err := db.Delete(models.UserSession{}, "user_id = ?", userID).Error; err != nil {
+		return usersession, err
+	}
+
+	// Create new user session
+	usersession.UserID = userID
+	if err := db.Create(&usersession).Error; err != nil {
+		return usersession, err
+	}
+
+	return usersession, nil
 }
 
 // LoginUser verifies a users details are correct, returning a jwt token to the user
@@ -60,11 +76,10 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	var usersession models.UserSession
-	usersession.UserID = userDb.ID
-	if err := db.Create(&usersession).Error; err != nil {
+	usersession, err := CreateSession(userDb.ID)
+	if err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/login - LoginUser()",
+			Loc:   "/login - LoginUser() - Create session",
 			Code:  errors.InternalServerError.Code,
 			Extra: map[string]interface{}{"UserID": userDb.ID},
 			Err:   err.Error(),
@@ -73,7 +88,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	authToken, refreshToken, csrfToken, err := jwt.Token(usersession)
+	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
 	if err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/login - LoginUser()",
