@@ -15,7 +15,7 @@ func TestGetPlanRoute(t *testing.T) {
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, planId uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/private/plan/%d", planId)
+		url := fmt.Sprintf("/api/private/plans/%d", planId)
 		req, _ := http.NewRequest("GET", url, nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
@@ -62,7 +62,7 @@ func TestCreatePlanRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(plan)
-		req, _ := http.NewRequest("POST", "/api/private/plan", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("POST", "/api/private/plans", bytes.NewBuffer(j))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
 		req.Header.Set("X-CSRF-Token", csrfToken)
@@ -173,7 +173,7 @@ func TestUpdatePlanRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(plan)
-		req, _ := http.NewRequest("PUT", "/api/private/plan", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("PUT", "/api/private/plans", bytes.NewBuffer(j))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
 		req.Header.Set("X-CSRF-Token", csrfToken)
@@ -238,7 +238,7 @@ func TestDeletePlanRoute(t *testing.T) {
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, id uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/private/plan/%d", id)
+		url := fmt.Sprintf("/api/private/plans/%d", id)
 		req, _ := http.NewRequest("DELETE", url, nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
