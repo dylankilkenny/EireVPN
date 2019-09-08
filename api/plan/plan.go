@@ -1,26 +1,25 @@
 package plan
 
 import (
-	"eirevpn/api/db"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Plan fetches a plan by ID
 func Plan(c *gin.Context) {
-	id := c.Param("id")
-	db := db.GetDB()
-	var p models.Plan
-
-	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
+	planID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var plan models.Plan
+	plan.ID = uint(planID)
+	if err := plan.Find(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/plan/:id - Plan()",
 			Code:  errors.PlanNotFound.Code,
-			Extra: map[string]interface{}{"PlanID": id},
+			Extra: map[string]interface{}{"PlanID": c.Param("id")},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
@@ -31,7 +30,7 @@ func Plan(c *gin.Context) {
 		"status": 200,
 		"errors": make([]string, 0),
 		"data": gin.H{
-			"plan": p,
+			"plan": plan,
 		},
 	})
 
@@ -39,12 +38,11 @@ func Plan(c *gin.Context) {
 
 // CreatePlan creates a new plan
 func CreatePlan(c *gin.Context) {
-	db := db.GetDB()
-	var p models.Plan
+	var plan models.Plan
 
-	if err := c.BindJSON(&p); err != nil {
+	if err := c.BindJSON(&plan); err != nil {
 		logger.Log(logger.Fields{
-			Loc:  "/plan - CreatePlan()",
+			Loc:  "/plans/create - CreatePlan()",
 			Code: errors.InvalidForm.Code,
 			Err:  err.Error(),
 		})
@@ -52,11 +50,14 @@ func CreatePlan(c *gin.Context) {
 		return
 	}
 
-	if err := db.Create(&p).Error; err != nil {
+	if err := plan.Create(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:  "/plan - CreatePlan()",
+			Loc:  "/plans/create - CreatePlan()",
 			Code: errors.InternalServerError.Code,
-			Err:  err.Error(),
+			Extra: map[string]interface{}{
+				"Plan": plan,
+			},
+			Err: err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 		return
@@ -66,7 +67,7 @@ func CreatePlan(c *gin.Context) {
 		"status": 200,
 		"errors": make([]string, 0),
 		"data": gin.H{
-			"plan": p,
+			"plan": plan,
 		},
 	})
 }
@@ -74,26 +75,25 @@ func CreatePlan(c *gin.Context) {
 // DeletePlan deletes a given plan. It will not delete a plan fully however,
 // it will just set a DeletedAt datetime on the record
 func DeletePlan(c *gin.Context) {
-	id := c.Param("id")
-	db := db.GetDB()
-	var p models.Plan
-
-	if err := db.Where("id = ?", id).First(&p).Error; err != nil {
+	planID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var plan models.Plan
+	plan.ID = uint(planID)
+	if err := plan.Find(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/plan/:id - DeletePlan()",
+			Loc:   "/plans/delete/:id - DeletePlan()",
 			Code:  errors.PlanNotFound.Code,
-			Extra: map[string]interface{}{"PlanID": id},
+			Extra: map[string]interface{}{"PlanID": c.Param("id")},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 		return
 	}
 
-	if err := db.Delete(&p).Error; err != nil {
+	if err := plan.Delete(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/plan/:id - DeletePlan()",
-			Code:  errors.InternalServerError.Code,
-			Extra: map[string]interface{}{"PlanID": id},
+			Loc:   "/plans/delete/:id - DeletePlan()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"PlanID": c.Param("id")},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
@@ -109,25 +109,43 @@ func DeletePlan(c *gin.Context) {
 
 // UpdatePlan updates an existing plan
 func UpdatePlan(c *gin.Context) {
-	db := db.GetDB()
-	var p models.Plan
+	planID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var plan models.Plan
+	plan.ID = uint(planID)
 
-	if err := c.BindJSON(&p); err != nil {
+	type PlanUpdates struct {
+		Name string `json:"name" binding:"required"`
+	}
+	planUdates := PlanUpdates{}
+
+	if err := plan.Find(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/plan - UpdatePlan()",
+			Loc:   "/plans/update/:id - UpdatePlan()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"PlanID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
+		return
+	}
+
+	if err := c.BindJSON(&planUdates); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/plans/update/:id - UpdatePlan()",
 			Code:  errors.InvalidForm.Code,
-			Extra: map[string]interface{}{"PlanID": p.ID},
+			Extra: map[string]interface{}{"PlanID": c.Param("id")},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
 		return
 	}
 
-	if err := db.Save(&p).Error; err != nil {
+	plan.Name = planUdates.Name
+	if err := plan.Save(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/plan - UpdatePlan()",
+			Loc:   "/plans/update/:id - UpdatePlan()",
 			Code:  errors.InternalServerError.Code,
-			Extra: map[string]interface{}{"PlanID": p.ID},
+			Extra: map[string]interface{}{"PlanID": plan.ID},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
@@ -142,26 +160,19 @@ func UpdatePlan(c *gin.Context) {
 
 // AllPlans returns an array of all available plans
 func AllPlans(c *gin.Context) {
-	db := db.GetDB()
-	var plans []models.Plan
+	var plans models.AllPlans
 
-	if err := db.Find(&plans).Error; err != nil {
+	if err := plans.FindAll(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:  "/plan - AllPlans()",
+			Loc:  "/plans - AllPlans()",
 			Code: errors.InternalServerError.Code,
 			Err:  err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 
-	if len(plans) == 0 {
-		c.AbortWithStatusJSON(errors.NoPlansFound.Status, errors.NoPlansFound)
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
-		"errors": make([]string, 0),
 		"data": gin.H{
 			"plans": plans,
 		},

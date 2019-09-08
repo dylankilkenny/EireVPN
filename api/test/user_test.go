@@ -16,7 +16,7 @@ func TestLoginRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(credentials)
-		req, _ := http.NewRequest("POST", "/api/login", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("POST", "/api/user/login", bytes.NewBuffer(j))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 		return w.Code
@@ -61,7 +61,7 @@ func TestSignUpRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(credentials)
-		req, _ := http.NewRequest("POST", "/api/signup", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("POST", "/api/user/signup", bytes.NewBuffer(j))
 		req.Header.Set("Content-Type", "application/json")
 		r.ServeHTTP(w, req)
 		return w.Code

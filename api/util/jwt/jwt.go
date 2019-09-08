@@ -21,7 +21,7 @@ type JWTClaims struct {
 
 // Tokens creates a jwt token from the user ID. This token will
 // expire in 1 hour
-func Tokens(usersession models.UserSession) (string, string, string, error) {
+func Tokens(usersession models.UserAppSession) (string, string, string, error) {
 	// Set claims
 	csrfToken, _ := random.GenerateRandomString(64)
 	authExpiry := jwt_lib.StandardClaims{

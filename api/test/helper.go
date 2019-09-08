@@ -1,6 +1,7 @@
 package test
 
 import (
+	"eirevpn/api/config"
 	"eirevpn/api/db"
 	"eirevpn/api/errors"
 	"eirevpn/api/models"
@@ -9,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -22,13 +22,6 @@ import (
 var err error
 var dbInstance *gorm.DB
 var r *gin.Engine
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
 
 func assertCorrectStatus(t *testing.T, want, got int) {
 	t.Helper()
@@ -59,14 +52,14 @@ func assertCorrectCode(t *testing.T, want, got string) {
 // InitDB Creates a clean test database
 func InitDB() {
 
-	conf := db.DbConfig{}
-	conf.Port = "5432"
-	conf.User = "test"
-	conf.Password = "test"
-	conf.Host = "localhost"
-	conf.Database = "eirevpn_test"
+	conf := config.GetConfig()
+	conf.DB.Port = 5432
+	conf.DB.User = "test"
+	conf.DB.Password = "test"
+	conf.DB.Host = "localhost"
+	conf.DB.Database = "eirevpn_test"
 
-	db.Init(conf, false)
+	db.Init(conf, false, models.Get())
 	dbInstance = db.GetDB()
 
 	if err != nil {
@@ -90,13 +83,12 @@ func CreateUser() *models.User {
 
 // CreatePlan creates a new plan record in the db
 func CreatePlan() *models.Plan {
-	intRef := func(i int) *int { return &i }
 	plan := models.Plan{
-		Name:           "test_plan",
-		Type:           "test",
-		DurationHours:  intRef(0),
-		DurationDays:   intRef(0),
-		DurationMonths: intRef(1),
+		Name:          "test_plan",
+		Amount:        100,
+		Interval:      "month",
+		IntervalCount: int64(1),
+		Currency:      "EUR",
 	}
 	err := dbInstance.Create(&plan).Error
 	if err != nil {
@@ -109,7 +101,7 @@ func CreatePlan() *models.Plan {
 func CreateCleanDB() {
 	dbInstance.DropTableIfExists(&models.User{})
 	dbInstance.DropTableIfExists(&models.Plan{})
-	dbInstance.DropTableIfExists(&models.UserSession{})
+	dbInstance.DropTableIfExists(&models.UserAppSession{})
 
 	if !dbInstance.HasTable(&models.User{}) {
 		dbInstance.CreateTable(&models.User{})
@@ -119,8 +111,8 @@ func CreateCleanDB() {
 		dbInstance.CreateTable(&models.Plan{})
 	}
 
-	if !dbInstance.HasTable(&models.UserSession{}) {
-		dbInstance.CreateTable(&models.UserSession{})
+	if !dbInstance.HasTable(&models.UserAppSession{}) {
+		dbInstance.CreateTable(&models.UserAppSession{})
 	}
 }
 
@@ -131,7 +123,7 @@ func DropPlanTable() {
 
 // GetToken fetches a jwt token for the given user
 func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
-	var usersession models.UserSession
+	var usersession models.UserAppSession
 	usersession.UserID = u.ID
 	dbInstance.Create(&usersession)
 	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
@@ -144,7 +136,7 @@ func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
 
 // DeleteIdentifier removes the users session identifier
 func DeleteIdentifier(u *models.User) {
-	var usersession models.UserSession
+	var usersession models.UserAppSession
 	dbInstance.Where("user_id = ?", u.ID).First(&usersession)
 	dbInstance.Delete(&usersession)
 }

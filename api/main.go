@@ -1,33 +1,33 @@
 package main
 
 import (
+	"eirevpn/api/config"
+	"eirevpn/api/integrations"
 	"eirevpn/api/logger"
+	"eirevpn/api/models"
 	"eirevpn/api/router"
 	"os"
-
-	"fmt"
-	"log"
+	"path/filepath"
 
 	"eirevpn/api/db"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	debugMode := false
 	logging := true
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("main() -> Error loading .env file")
-	}
-	config := db.DbConfig{}
-	config.Load()
-	db.Init(config, debugMode)
+	appPath, _ := os.Getwd()
+	filename, _ := filepath.Abs(appPath + "/config.yaml")
+	config.Init(filename)
+	conf := config.GetConfig()
+
+	integrations.Init()
+
+	db.Init(conf, debugMode, models.Get())
 
 	logger.Init(logging)
 
-	r := router.SetupRouter(logging)
-	r.Run(":" + os.Getenv("PORT"))
+	r := router.Init(conf, logging)
+
+	r.Run(":" + string(conf.App.Port))
 }

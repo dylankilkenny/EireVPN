@@ -36,15 +36,6 @@ func TestGetPlanRoute(t *testing.T) {
 		CreateCleanDB()
 	})
 
-	// t.Run("Invalid token", func(t *testing.T) {
-	// 	token := "invalid"
-	// 	want := 401
-	// 	plan := CreatePlan()
-	// 	got := makeRequest(t, token, plan.ID)
-	// 	assertCorrectStatus(t, want, got)
-	// 	CreateCleanDB()
-	// })
-
 	t.Run("Plan not found", func(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
@@ -62,7 +53,7 @@ func TestCreatePlanRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(plan)
-		req, _ := http.NewRequest("POST", "/api/private/plans", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("POST", "/api/private/plans/create", bytes.NewBuffer(j))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
 		req.Header.Set("X-CSRF-Token", csrfToken)
@@ -74,11 +65,11 @@ func TestCreatePlanRoute(t *testing.T) {
 
 	t.Run("Successful Plan Creation", func(t *testing.T) {
 		plan := map[string]interface{}{
-			"name":            "1 Year",
-			"type":            "subscription",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
+			"name":           "Test Product in test mode",
+			"amount":         500,
+			"interval":       "month",
+			"interval_count": 1,
+			"currency":       "EUR",
 		}
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
@@ -90,11 +81,11 @@ func TestCreatePlanRoute(t *testing.T) {
 
 	t.Run("Invalid form", func(t *testing.T) {
 		halfFilledPlan := map[string]interface{}{
-			"name":            "",
-			"type":            "",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
+			"name":           "",
+			"amount":         "",
+			"interval":       "month",
+			"interval_count": 1,
+			"currency":       "EUR",
 		}
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
@@ -104,13 +95,13 @@ func TestCreatePlanRoute(t *testing.T) {
 		CreateCleanDB()
 	})
 
-	t.Run("Internal Server Error", func(t *testing.T) {
+	t.Run("Drop table - Internal Server Error", func(t *testing.T) {
 		plan := map[string]interface{}{
-			"name":            "1 Year",
-			"type":            "subscription",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
+			"name":           "Test Product in test mode",
+			"amount":         500,
+			"interval":       "month",
+			"interval_count": 1,
+			"currency":       "EUR",
 		}
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
@@ -150,7 +141,7 @@ func TestAllPlansRoute(t *testing.T) {
 	t.Run("No Plans Found", func(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
-		want := 400
+		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
@@ -169,11 +160,12 @@ func TestAllPlansRoute(t *testing.T) {
 
 func TestUpdatePlanRoute(t *testing.T) {
 
-	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, plan map[string]interface{}) int {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, plan map[string]interface{}, id uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(plan)
-		req, _ := http.NewRequest("PUT", "/api/private/plans", bytes.NewBuffer(j))
+		url := fmt.Sprintf("/api/private/plans/update/%d", id)
+		req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(j))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
 		req.Header.Set("X-CSRF-Token", csrfToken)
@@ -185,49 +177,26 @@ func TestUpdatePlanRoute(t *testing.T) {
 
 	t.Run("Successful Update Plan", func(t *testing.T) {
 		plan := map[string]interface{}{
-			"name":            "1 Year",
-			"type":            "subscription",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
+			"name": "Update test plan",
 		}
+		p := CreatePlan()
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
-		assertCorrectStatus(t, want, got)
-		CreateCleanDB()
-	})
-
-	t.Run("Internal Server Error", func(t *testing.T) {
-		plan := map[string]interface{}{
-			"name":            "1 Year",
-			"type":            "subscription",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
-		}
-		user := CreateUser()
-		authToken, refreshToken, csrfToken := GetToken(user)
-		want := 500
-		DropPlanTable()
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, plan, p.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
 	t.Run("Invalid form", func(t *testing.T) {
 		halfFilledPlan := map[string]interface{}{
-			"name":            "",
-			"type":            "",
-			"duration_hours":  0,
-			"duration_days":   0,
-			"duration_months": 12,
+			"name": "",
 		}
+		p := CreatePlan()
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
-		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan, p.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
@@ -238,7 +207,7 @@ func TestDeletePlanRoute(t *testing.T) {
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, id uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/private/plans/%d", id)
+		url := fmt.Sprintf("/api/private/plans/delete/%d", id)
 		req, _ := http.NewRequest("DELETE", url, nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}

@@ -1,8 +1,10 @@
 package test
 
 import (
+	"eirevpn/api/config"
 	"eirevpn/api/logger"
 	"eirevpn/api/router"
+	"flag"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,11 +12,22 @@ import (
 	"time"
 )
 
+var logging bool
+
 func TestMain(m *testing.M) {
+
+	flag.BoolVar(&logging, "logging", false, "enable logging")
+	flag.Parse()
+
+	config.Init("../config.yaml")
+	conf := config.GetConfig()
+	config.UseStripeIntegration(false)
+
 	InitDB()
-	r = router.SetupRouter(false)
-	logger.Init(false)
+	r = router.Init(conf, logging)
+	logger.Init(logging)
 	code := m.Run()
+
 	os.Exit(code)
 }
 

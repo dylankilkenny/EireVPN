@@ -32,9 +32,15 @@ func Log(fields Fields) {
 			field := fmt.Sprintf("%s: %v    ", Bold(BrightRed(k)), v)
 			str.WriteString(field)
 		}
-		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Code")), fields.Code))
-		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Loc")), fields.Loc))
-		str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Err")), fields.Err))
+		if fields.Code != "" {
+			str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Code")), fields.Code))
+		}
+		if fields.Loc != "" {
+			str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Loc")), fields.Loc))
+		}
+		if fields.Err != "" {
+			str.WriteString(fmt.Sprintf("%s: %v    ", Bold(BrightRed("Err")), fields.Err))
+		}
 		fmt.Println(str.String())
 	}
 }

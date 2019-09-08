@@ -1,6 +1,7 @@
 package router
 
 import (
+	"eirevpn/api/config"
 	"eirevpn/api/db"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
@@ -17,9 +18,8 @@ import (
 
 const secretkey = "verysecretkey1995"
 
-func SetupRouter(logging bool) *gin.Engine {
+func Init(conf config.Config, logging bool) *gin.Engine {
 	var router *gin.Engine
-
 	if logging {
 		router = gin.Default()
 	} else {
@@ -29,39 +29,34 @@ func SetupRouter(logging bool) *gin.Engine {
 		router.Use(gin.Recovery())
 	}
 
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:8080"}
-	config.AllowCredentials = true
-	config.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
-	router.Use(cors.New(config))
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = conf.App.AllowedOrigins
+	corsConfig.AllowCredentials = true
+	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
+	router.Use(cors.New(corsConfig))
 
 	public := router.Group("/api")
+	public.POST("/user/signup", user.SignUpUser)
+	public.POST("/user/login", user.LoginUser)
+	public.POST("/user/webhook", user.Webhook)
 
 	private := router.Group("/api/private")
-	private.Use(auth(secretkey))
-
-	// secret := router.Group("/api/secret")
-
-	public.POST("/signup", user.SignUpUser)
-	public.POST("/login", user.LoginUser)
-	// public.POST("/validate", user.ValidateToken)
+	private.Use(auth(secretkey, conf.App.Domain))
+	private.GET("/user/updatepayment", user.StripeUpdatePaymentSession)
+	private.GET("/user/session/:planid", user.StripeSession)
 	private.GET("/plans/:id", plan.Plan)
-	private.POST("/plans", plan.CreatePlan)
-	private.PUT("/plans", plan.UpdatePlan)
-	private.DELETE("/plans/:id", plan.DeletePlan)
+	private.POST("/plans/create", plan.CreatePlan)
+	private.PUT("/plans/update/:id", plan.UpdatePlan)
+	private.DELETE("/plans/delete/:id", plan.DeletePlan)
 	private.GET("/plans", plan.AllPlans)
-	// private.GET("/address", user.GetSubscribedAddresses)
-	// private.POST("/address", user.SubscribeToAddress)
-	// private.DELETE("/remove", user.RemoveSubscribedAddress)
-	// secret.POST("/users", user.SubscribedUsers)
 
 	return router
 }
 
-func auth(secret string) gin.HandlerFunc {
+func auth(secret, domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var usersession models.UserSession
+		var usersession models.UserAppSession
 
 		// Fetch authentification token
 		authToken, err := c.Request.Cookie("authToken")
@@ -86,7 +81,6 @@ func auth(secret string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
 			return
 		}
-
 		// Check auth token is valid
 		authClaims, err := jwt.ValidateToken(authToken.Value)
 		if err != nil {
@@ -103,7 +97,7 @@ func auth(secret string) gin.HandlerFunc {
 				return
 			}
 
-			usersession = models.UserSession{
+			usersession = models.UserAppSession{
 				UserID:     refreshClaims.UserID,
 				Identifier: refreshClaims.SessionIdentifier,
 			}
@@ -124,25 +118,34 @@ func auth(secret string) gin.HandlerFunc {
 		// If auth token or refresh token is valid check if crsf token matches the one supplied
 		// in the header
 		if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
+			var reason string
+			if authClaims.CSRF == "" {
+				reason = "CSRF token is missing from claims"
+			}
+			if c.GetHeader("X-CSRF-Token") == "" {
+				reason = "CSRF token is missing from header"
+			}
+			if authClaims == nil {
+				reason = "Auth Claims is nil"
+			}
 			logger.Log(logger.Fields{
-				Loc:   "router.go - auth()",
-				Code:  errors.CSRFTokenInvalid.Code,
-				Extra: map[string]interface{}{"authClaims": authClaims},
-				Err:   "CSRF tokens do not match",
+				Loc:  "router.go - auth()",
+				Code: errors.CSRFTokenInvalid.Code,
+				Err:  reason,
 			})
 			c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
 			return
 		}
 
-		if usersession == (models.UserSession{}) {
-			usersession = models.UserSession{
+		if usersession == (models.UserAppSession{}) {
+			usersession = models.UserAppSession{
 				UserID: authClaims.UserID,
 			}
 		}
 
 		// create a new user session
-		usersession, err = user.CreateSession(usersession.UserID)
-		if err != nil {
+		var newUserSession models.UserAppSession
+		if err := newUserSession.New(usersession.UserID); err != nil {
 			logger.Log(logger.Fields{
 				Loc:   "/login - LoginUser() - Create session",
 				Code:  errors.InternalServerError.Code,
@@ -154,25 +157,28 @@ func auth(secret string) gin.HandlerFunc {
 		}
 
 		// If all auth checks pass create fresh tokens
-		newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(usersession)
+		newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(newUserSession)
 		if err != nil {
 			logger.Log(logger.Fields{
 				Loc:   "router.go - auth()",
 				Code:  errors.InternalServerError.Code,
-				Extra: map[string]interface{}{"UserID": usersession.UserID},
+				Extra: map[string]interface{}{"UserID": newUserSession.UserID},
 				Err:   err.Error(),
 			})
 			c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 			return
 		}
 
+		// Add user id to the context for use within the routes
+		c.Set("UserID", newUserSession.UserID)
+
 		// TODO: Change the domain name and add correct maxAge time
 		authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-		c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", "localhost", true, false)
+		c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", domain, false, false)
 
 		// TODO: Change the domain name and add correct maxAge time
 		refreshCookieMaxAge := 72 * 60 * 60 // 72 hours in seconds
-		c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", "localhost", true, false)
+		c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", domain, false, false)
 		c.Header("X-CSRF-Token", newCsrfToken)
 	}
 }
