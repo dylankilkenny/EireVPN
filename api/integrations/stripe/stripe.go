@@ -80,7 +80,7 @@ func DeletePlan(StripePlanID, StripeProductID string) error {
 	return nil
 }
 
-func CreateSessionSubscription(planID, customerID, userID string) (*stripe.CheckoutSession, error) {
+func CreateSubscriptionSession(planID, customerID, userID string) (*stripe.CheckoutSession, error) {
 	if conf.Stripe.IntegrationActive {
 		params := &stripe.CheckoutSessionParams{
 			Customer:          stripe.String(customerID),
@@ -104,7 +104,7 @@ func CreateSessionSubscription(planID, customerID, userID string) (*stripe.Check
 	return nil, nil
 }
 
-func CreateSessionPAYG(planName, customerID string, cartID uint, planAmount int64) (*stripe.CheckoutSession, error) {
+func CreatePAYGSession(planName, customerID string, cartID uint, planAmount int64) (*stripe.CheckoutSession, error) {
 	if conf.Stripe.IntegrationActive {
 		params := &stripe.CheckoutSessionParams{
 			Customer:          stripe.String(customerID),
@@ -268,6 +268,7 @@ func WebhookEventHandler(body io.ReadCloser, stripeSignature, endpointSecret str
 			}
 			webhookEvent.StripeSubscriptionEndPeriod = sub.CurrentPeriodEnd
 			webhookEvent.CheckoutModeSubscription = true
+			webhookEvent.StripeSubscriptionEndPeriod = sub.CurrentPeriodEnd
 			userID, _ := strconv.ParseUint(checkoutSession.ClientReferenceID, 10, 64)
 			webhookEvent.UserID = uint(userID)
 		}
@@ -289,4 +290,24 @@ func WebhookEventHandler(body io.ReadCloser, stripeSignature, endpointSecret str
 		}
 	}
 	return &webhookEvent, nil
+}
+
+func CustomerSubscription(customerID string) (*stripe.Subscription, error) {
+	cust, err := GetCustomer(customerID)
+	if err != nil {
+		return nil, err
+	}
+	var subscription *stripe.Subscription
+	for _, sub := range cust.Subscriptions.Data {
+		subscription = sub
+	}
+	return subscription, nil
+}
+
+func CancelSubscription(subscriptionID string) error {
+	_, err := sub.Cancel(subscriptionID, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }

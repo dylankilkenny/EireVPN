@@ -44,6 +44,7 @@ func Init(conf config.Config, logging bool) *gin.Engine {
 	private.Use(auth(secretkey, conf.App.Domain))
 	private.GET("/user/updatepayment", user.StripeUpdatePaymentSession)
 	private.GET("/user/session/:planid", user.StripeSession)
+	private.GET("/user/cancel", user.CancelSubscription)
 	private.GET("/plans/:id", plan.Plan)
 	private.POST("/plans/create", plan.CreatePlan)
 	private.PUT("/plans/update/:id", plan.UpdatePlan)

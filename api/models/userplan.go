@@ -12,6 +12,7 @@ type UserPlan struct {
 	UserID     uint      `json:"user_id"`
 	PlanID     uint      `json:"plan_id"`
 	Active     bool      `json:"active"`
+	StartDate  time.Time `json:"start_date"`
 	ExpiryDate time.Time `json:"expiry_date"`
 }
 
@@ -24,6 +25,13 @@ func (up *UserPlan) Find() error {
 
 func (up *UserPlan) Save() error {
 	if err := db().Save(&up).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (up *UserPlan) Delete() error {
+	if err := db().Delete(&up).Error; err != nil {
 		return err
 	}
 	return nil

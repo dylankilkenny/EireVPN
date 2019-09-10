@@ -7,6 +7,7 @@ import (
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
 	"eirevpn/api/util/jwt"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -190,7 +191,6 @@ func StripeSession(c *gin.Context) {
 
 	if user.StripeCustomerID == "" {
 		customer, err := user.CreateStripeCustomer()
-		user.StripeCustomerID = customer.ID
 		if err != nil {
 			logger.Log(logger.Fields{
 				Loc:  "/user/session/:planid - StripeSession()",
@@ -204,6 +204,7 @@ func StripeSession(c *gin.Context) {
 			c.AbortWithStatusJSON(errors.StripeCreateCustomerErr.Status, errors.StripeCreateCustomerErr)
 			return
 		}
+		user.StripeCustomerID = customer.ID
 		if err := user.Save(); err != nil {
 			logger.Log(logger.Fields{
 				Loc:  "/user/session/:planid - CreateSession()",
@@ -222,7 +223,7 @@ func StripeSession(c *gin.Context) {
 	}
 	var sessionID string
 	if plan.PlanType == models.PlanTypeSubscription {
-		stripeSession, err := stripe.CreateSessionSubscription(plan.StripePlanID, user.StripeCustomerID, string(user.ID))
+		stripeSession, err := stripe.CreateSubscriptionSession(plan.StripePlanID, user.StripeCustomerID, fmt.Sprint(user.ID))
 		if err != nil {
 			logger.Log(logger.Fields{
 				Loc:  "/user/session/:planid - CreateSession()",
@@ -257,7 +258,7 @@ func StripeSession(c *gin.Context) {
 			return
 		}
 
-		stripeSession, err := stripe.CreateSessionPAYG(plan.Name, user.StripeCustomerID, cart.ID, plan.Amount)
+		stripeSession, err := stripe.CreatePAYGSession(plan.Name, user.StripeCustomerID, cart.ID, plan.Amount)
 		if err != nil {
 			logger.Log(logger.Fields{
 				Loc:  "/user/session/:planid - CreateSession()",
@@ -386,6 +387,7 @@ func Webhook(c *gin.Context) {
 			userPlan.UserID = webhookevent.UserID
 			userPlan.PlanID = plan.ID
 			userPlan.Active = true
+			userPlan.StartDate = time.Now()
 			userPlan.ExpiryDate = time.Unix(webhookevent.StripeSubscriptionEndPeriod, 0)
 			if err := userPlan.Save(); err != nil {
 				logger.Log(logger.Fields{
@@ -434,6 +436,7 @@ func Webhook(c *gin.Context) {
 			userPlan.UserID = cart.UserID
 			userPlan.PlanID = plan.ID
 			userPlan.Active = true
+			userPlan.StartDate = time.Now()
 			userPlan.ExpiryDate = time.Now().Add(time.Hour * time.Duration(plan.IntervalCount))
 			if err := userPlan.Save(); err != nil {
 				logger.Log(logger.Fields{
@@ -473,19 +476,49 @@ func Webhook(c *gin.Context) {
 					Loc:  "/user/webhook - Webhook()",
 					Code: errors.PlanNotFound.Code,
 					Extra: map[string]interface{}{
-						"PlanID": c.Param("planid"),
+						"PlanID": webhookevent.StripePlanID,
 					},
 					Err: err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
 				return
 			}
+			var user models.User
+			user.StripeCustomerID = webhookevent.StripeCustomerID
+			if err := user.Find(); err != nil {
+				logger.Log(logger.Fields{
+					Loc:  "/user/webhook - Webhook()",
+					Code: errors.UserNotFound.Code,
+					Extra: map[string]interface{}{
+						"CustomerID": webhookevent.StripeCustomerID,
+					},
+					Err: err.Error(),
+				})
+				c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+				return
+			}
 			var userPlan models.UserPlan
-			userPlan.UserID = webhookevent.UserID
+			userPlan.UserID = user.ID
 			userPlan.PlanID = plan.ID
 			if err := userPlan.Find(); err != nil {
 				logger.Log(logger.Fields{
-					Loc:   "/user/webhook - checkoutComplete()",
+					Loc:  "/user/webhook - Webhook()",
+					Code: errors.InternalServerError.Code,
+					Extra: map[string]interface{}{
+						"UserID": userPlan.UserID,
+						"Detail": "Could not find user_plan record",
+					},
+					Err: err.Error(),
+				})
+				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+				return
+			}
+
+			userPlan.Active = true
+			userPlan.ExpiryDate = time.Unix(webhookevent.StripeSubscriptionEndPeriod, 0)
+			if err := userPlan.Save(); err != nil {
+				logger.Log(logger.Fields{
+					Loc:   "/user/webhook - Webhook()",
 					Code:  errors.InternalServerError.Code,
 					Extra: map[string]interface{}{"UserID": userPlan.UserID},
 					Err:   err.Error(),
@@ -499,93 +532,110 @@ func Webhook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// func checkoutComplete(c *gin.Context, checkoutSession stripego.CheckoutSession) {
-// 	var planID string
-// 	for _, item := range checkoutSession.DisplayItems {
-// 		planID = item.Plan.ID
-// 	}
+func CancelSubscription(c *gin.Context) {
+	var user models.User
+	userID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/user/updatepayment- StripeUpdatePaymentSession()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+	}
+	user.ID = userID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/updatepayment- StripeUpdatePaymentSession()",
+			Code: errors.UserNotFound.Code,
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": errors.UserNotFound.Detail,
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
 
-// 	var plan models.Plan
-// 	if err := plan.FindStripePlan(planID); err != nil {
-// 		logger.Log(logger.Fields{
-// 			Loc:  "/user/webhook - checkoutComplete()",
-// 			Code: errors.PlanNotFound.Code,
-// 			Extra: map[string]interface{}{
-// 				"PlanID": c.Param("planid"),
-// 			},
-// 			Err: err.Error(),
-// 		})
-// 		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
-// 		return
-// 	}
+	subscription, err := stripe.CustomerSubscription(user.StripeCustomerID)
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/cancel - CancelSubscription()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": user.ID,
+				"Detail": "Error fetching customer subscription",
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
 
-// 	sub, err := stripe.GetSubscription(checkoutSession.Subscription.ID)
-// 	if err != nil {
-// 		logger.Log(logger.Fields{
-// 			Loc: "/user/webhook - checkoutComplete()",
-// 			Extra: map[string]interface{}{
-// 				"StripeSubID": checkoutSession.Subscription.ID,
-// 				"Detail":      "Subscription not found with stripe",
-// 			},
-// 			Err: err.Error(),
-// 		})
-// 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-// 		return
-// 	}
-// 	userID, _ := strconv.ParseUint(checkoutSession.ClientReferenceID, 10, 64)
-// 	var userPlan models.UserPlan
-// 	userPlan.UserID = uint(userID)
-// 	userPlan.PlanID = plan.ID
-// 	userPlan.Active = true
-// 	userPlan.ExpiryDate = time.Unix(sub.CurrentPeriodEnd, 0)
-// 	if err := userPlan.Save(); err != nil {
-// 		logger.Log(logger.Fields{
-// 			Loc:   "/user/webhook - checkoutComplete()",
-// 			Code:  errors.InternalServerError.Code,
-// 			Extra: map[string]interface{}{"UserID": userPlan.UserID},
-// 			Err:   err.Error(),
-// 		})
-// 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-// 		return
-// 	}
+	var plan models.Plan
+	plan.StripePlanID = subscription.Plan.ID
+	if err := plan.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/webhook - Webhook()",
+			Code: errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{
+				"PlanID": subscription.Plan.ID,
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{})
-// }
+	var userPlan models.UserPlan
+	userPlan.UserID = user.ID
+	userPlan.PlanID = plan.ID
+	if err := userPlan.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/webhook - Webhook()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": userPlan.UserID,
+				"Detail": "Could not find user_plan record",
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
 
-// func paymentSetupComplete(c *gin.Context, setupSession stripego.CheckoutSession) {
-// 	setupIntent, err := stripe.GetSetupIntent(setupSession.SetupIntent.ID)
-// 	if err != nil {
-// 		logger.Log(logger.Fields{
-// 			Loc: "/user/webhook - paymentSetupComplete()",
-// 			Extra: map[string]interface{}{
-// 				"StripeSetupIntentID": setupSession.SetupIntent.ID,
-// 				"Detail":              "Setup intent not found with stripe",
-// 			},
-// 			Err: err.Error(),
-// 		})
-// 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-// 		return
-// 	}
-// 	err = stripe.UpdateCustomerPaymentMethod(setupIntent.Metadata["customer_id"], setupIntent.PaymentMethod.ID)
-// 	if err != nil {
-// 		logger.Log(logger.Fields{
-// 			Loc:  "/user/webhook - paymentSetupComplete()",
-// 			Code: errors.StripeUpdatePayMethodErr.Code,
-// 			Extra: map[string]interface{}{
-// 				"StripeCustomerID": setupIntent.Metadata["customer_id"],
-// 				"Detail":           "Error updating customers default payment method",
-// 			},
-// 			Err: err.Error(),
-// 		})
-// 		c.AbortWithStatusJSON(errors.StripeUpdatePayMethodErr.Status, errors.StripeUpdatePayMethodErr)
-// 		return
-// 	}
+	if err := userPlan.Delete(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/webhook - Webhook()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserPlanID": userPlan.ID,
+				"Detail":     "Failed to delete user plan",
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status": 200,
-// 		"data":   []string{},
-// 	})
-// }
+	err = stripe.CancelSubscription(subscription.ID)
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/cancel - CancelSubscription()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": user.ID,
+				"Detail": "Error canceling customer subscription",
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
 
 // // ChangePasswordRequest sends the user a link to change their password
 // func ChangePasswordRequest(c *gin.Context) {
