@@ -1,0 +1,48 @@
+{
+    "name": "ÉireVPN",
+    "author": "ÉireVPN Team",
+    "version": "0.0.1",
+    "manifest_version": 2,
+    "description": "ÉireVPN is an irish based VPN solution",
+    "icons": {
+        "48": "assets/icons/eirevpn-48.png"
+    },
+    "default_locale": "en",
+    "content_scripts": [{
+        "matches": [
+            "http://*/*",
+            "https://*/*"
+        ],
+        "js": [
+            "content/content.js"
+        ]
+    }],
+    "background": {
+        "scripts": [
+            "background/background.js",
+            "hotreload/hotreload.js"
+        ],
+        "persistent": true
+    },
+    "permissions": [
+        "tabs",
+        "webRequest",
+        "webRequestBlocking",
+        "proxy",
+        "storage",
+        "http://*/*",
+        "https://*/*",
+        "*://0.0.0.0/*",
+        "*://localhost/*"
+    ],
+    "options_ui": {
+        "page": "options/index.html"
+    },
+    "browser_action": {
+        "default_icon": {
+            "48": "assets/icons/eirevpn-48.png"
+        },
+        "default_title": "EireVPN",
+        "default_popup": "popup/index.html"
+    }
+}
