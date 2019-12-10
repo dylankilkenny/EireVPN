@@ -23,5 +23,6 @@ func Get() []interface{} {
 		&UserPlan{},
 		&UserAppSession{},
 		&Cart{},
+		&Server{},
 	}
 }

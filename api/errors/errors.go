@@ -29,6 +29,7 @@ var (
 	StripeUpdatePayMethodErr    = APIError{400, "STRIPEUDATEPAY", "Stripe Update Payment Method Error", "Failed to update customer payment method with stripe"}
 	StripeCustomerNotFound      = APIError{400, "STRCUSTNOTFOUND", "Stripe Customer Not Found", "Failed to find customer with stripe"}
 	PlanNotFound                = APIError{400, "PLANNOTFND", "Plan Not Found", "No plan was found matching the queried id"}
+	ServerNotFound              = APIError{400, "CONNNOTFND", "Server Not Found", "No server was found matching the queried id"}
 	NoPlansFound                = APIError{400, "NOPLANSFND", "No Plans Found", "There were no plans found"}
 	InvalidForm                 = APIError{400, "INVALIDFORM", "Invalid Form", "The submitted form is not valid"}
 	EmailOrPassword             = APIError{400, "EMAILPASSMISS", "Email or password missing", "The Email or password missing"}
@@ -41,6 +42,7 @@ var (
 	TokenInvalid                = APIError{401, "TOKENINVALID", "Token Invalid", "Authorisation token invalid"}
 	InvalidIdentifier           = APIError{401, "INVIDENTIFIER", "Invlaid identifier", "Invlaid identifier"}
 	CSRFTokenInvalid            = APIError{401, "CSRFTOKEN", "CSRF Token", "CSRF token is invalid"}
+	ProtectedRouted             = APIError{400, "PROTECTROUTE", "Protected Route", "You do not have the correct permissions to access this route."}
 )
 
 func (err *APIError) Error() string {

@@ -4,18 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
 
-func TestGetPlanRoute(t *testing.T) {
+func TestGetServerRoute(t *testing.T) {
 
-	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, planId uint) int {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, serverId uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/protected/plans/%d", planId)
+		url := fmt.Sprintf("/api/protected/servers/%d", serverId)
 		req, _ := http.NewRequest("GET", url, nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
@@ -26,36 +28,37 @@ func TestGetPlanRoute(t *testing.T) {
 		return w.Code
 	}
 
-	t.Run("Retrieve plan by ID", func(t *testing.T) {
+	t.Run("Retrieve server by ID", func(t *testing.T) {
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
-		plan := CreatePlan()
+		server := CreateServer()
 		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan.ID)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, server.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
-	t.Run("Plan not found", func(t *testing.T) {
+	t.Run("Server not found", func(t *testing.T) {
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
-		planID := uint(999)
-		got := makeRequest(t, authToken, refreshToken, csrfToken, planID)
+		serverID := uint(999)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, serverID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
-func TestCreatePlanRoute(t *testing.T) {
+func TestCreateServerRoute(t *testing.T) {
 
-	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, plan map[string]interface{}) int {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken, boundary string, server bytes.Buffer) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		j, _ := json.Marshal(plan)
-		req, _ := http.NewRequest("POST", "/api/protected/plans/create", bytes.NewBuffer(j))
+
+		req, _ := http.NewRequest("POST", "/api/protected/servers/create", strings.NewReader(server.String()))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
+		req.Header.Add("Content-Type", boundary)
 		req.Header.Set("X-CSRF-Token", csrfToken)
 		req.AddCookie(&authCookie)
 		req.AddCookie(&refreshCookie)
@@ -63,64 +66,65 @@ func TestCreatePlanRoute(t *testing.T) {
 		return w.Code
 	}
 
-	t.Run("Successful Plan Creation", func(t *testing.T) {
-		plan := map[string]interface{}{
-			"name":           "Test Product in test mode",
-			"amount":         500,
-			"interval":       "month",
-			"interval_count": 1,
-			"currency":       "EUR",
-			"plan_type":      "PAYG",
-		}
+	t.Run("Successful Server Creation", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		w := multipart.NewWriter(buf)
+		_ = w.WriteField("country", "United Kingdom")
+		_ = w.WriteField("country_code", "UK")
+		_ = w.WriteField("ip", "127.0.0.1")
+		_ = w.WriteField("type", "Proxy")
+		_ = w.WriteField("port", "8080")
+		w.Close()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, w.FormDataContentType(), *buf)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
 	t.Run("Invalid form", func(t *testing.T) {
-		halfFilledPlan := map[string]interface{}{
-			"name":           "",
-			"amount":         "",
-			"interval":       "month",
-			"interval_count": 1,
-			"currency":       "EUR",
-		}
+		buf := new(bytes.Buffer)
+		w := multipart.NewWriter(buf)
+		_ = w.WriteField("country", "United Kingdom")
+		_ = w.WriteField("country_code", "")
+		_ = w.WriteField("ip", "127.0.0.1")
+		_ = w.WriteField("type", "")
+		_ = w.WriteField("port", "")
+		w.Close()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
-		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, w.FormDataContentType(), *buf)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
 	t.Run("Drop table - Internal Server Error", func(t *testing.T) {
-		plan := map[string]interface{}{
-			"name":           "Test Product in test mode",
-			"amount":         500,
-			"interval":       "month",
-			"interval_count": 1,
-			"currency":       "EUR",
-			"plan_type":      "PAYG",
-		}
+		buf := new(bytes.Buffer)
+		w := multipart.NewWriter(buf)
+		_ = w.WriteField("country", "United Kingdom")
+		_ = w.WriteField("country_code", "UK")
+		_ = w.WriteField("ip", "127.0.0.1")
+		_ = w.WriteField("type", "Proxy")
+		_ = w.WriteField("port", "8080")
+		w.Close()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 500
-		DropPlanTable()
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan)
+		DropServerTable()
+		got := makeRequest(t, authToken, refreshToken, csrfToken, w.FormDataContentType(), *buf)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
-func TestAllPlansRoute(t *testing.T) {
+func TestAllServersRoute(t *testing.T) {
 
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/plans", nil)
+		req, _ := http.NewRequest("GET", "/api/private/servers", nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
 		req.Header.Set("X-CSRF-Token", csrfToken)
@@ -130,8 +134,8 @@ func TestAllPlansRoute(t *testing.T) {
 		return w.Code
 	}
 
-	t.Run("Successful get all plans", func(t *testing.T) {
-		_ = CreatePlan()
+	t.Run("Successful get all servers", func(t *testing.T) {
+		_ = CreateServer()
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
@@ -140,7 +144,7 @@ func TestAllPlansRoute(t *testing.T) {
 		CreateCleanDB()
 	})
 
-	t.Run("No Plans Found", func(t *testing.T) {
+	t.Run("No Servers Found", func(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
@@ -153,20 +157,20 @@ func TestAllPlansRoute(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 500
-		DropPlanTable()
+		DropServerTable()
 		got := makeRequest(t, authToken, refreshToken, csrfToken)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
-func TestUpdatePlanRoute(t *testing.T) {
+func TestUpdateServerRoute(t *testing.T) {
 
-	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, plan map[string]interface{}, id uint) int {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, server map[string]interface{}, id uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		j, _ := json.Marshal(plan)
-		url := fmt.Sprintf("/api/protected/plans/update/%d", id)
+		j, _ := json.Marshal(server)
+		url := fmt.Sprintf("/api/protected/servers/update/%d", id)
 		req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(j))
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
@@ -177,39 +181,39 @@ func TestUpdatePlanRoute(t *testing.T) {
 		return w.Code
 	}
 
-	t.Run("Successful Update Plan", func(t *testing.T) {
-		plan := map[string]interface{}{
-			"name": "Update test plan",
+	t.Run("Successful Update Server", func(t *testing.T) {
+		server := map[string]interface{}{
+			"ip": "127.0.0.1",
 		}
-		p := CreatePlan()
+		s := CreateServer()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan, p.ID)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, server, s.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
 	t.Run("Invalid form", func(t *testing.T) {
-		halfFilledPlan := map[string]interface{}{
-			"name": "",
+		halfFilledServer := map[string]interface{}{
+			"ip": "",
 		}
-		p := CreatePlan()
+		s := CreateServer()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
-		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledPlan, p.ID)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, halfFilledServer, s.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
-func TestDeletePlanRoute(t *testing.T) {
+func TestDeleteServerRoute(t *testing.T) {
 
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string, id uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/protected/plans/delete/%d", id)
+		url := fmt.Sprintf("/api/protected/servers/delete/%d", id)
 		req, _ := http.NewRequest("DELETE", url, nil)
 		authCookie := http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
 		refreshCookie := http.Cookie{Name: "refreshToken", Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)}
@@ -220,22 +224,22 @@ func TestDeletePlanRoute(t *testing.T) {
 		return w.Code
 	}
 
-	t.Run("Successful Delete Plan", func(t *testing.T) {
-		plan := CreatePlan()
+	t.Run("Successful Delete Server", func(t *testing.T) {
+		server := CreateServer()
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken, plan.ID)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, server.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
-	t.Run("Plan not found", func(t *testing.T) {
+	t.Run("Server not found", func(t *testing.T) {
 		user := CreateAdminUser()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 400
-		planID := uint(999)
-		got := makeRequest(t, authToken, refreshToken, csrfToken, planID)
+		serverID := uint(999)
+		got := makeRequest(t, authToken, refreshToken, csrfToken, serverID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})

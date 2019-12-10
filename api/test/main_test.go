@@ -36,7 +36,7 @@ func TestAuthTokens(t *testing.T) {
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) *httptest.ResponseRecorder {
 		t.Helper()
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/private/plans", nil)
+		req, _ := http.NewRequest("GET", "/api/private/servers", nil)
 		if authToken != "" {
 			req.AddCookie(&http.Cookie{Name: "authToken", Value: authToken, Expires: time.Now().Add(time.Minute * 5)})
 		}
@@ -50,7 +50,7 @@ func TestAuthTokens(t *testing.T) {
 
 	t.Run("Successful Authentification", func(t *testing.T) {
 		user := CreateUser()
-		_ = CreatePlan()
+		_ = CreateServer()
 		authToken, refreshToken, csrfToken := GetToken(user)
 		want := 200
 		got := makeRequest(t, authToken, refreshToken, csrfToken)

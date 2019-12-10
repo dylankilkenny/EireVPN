@@ -11,6 +11,7 @@ type Config struct {
 	App struct {
 		Port           string   `yaml:"Port"`
 		Domain         string   `yaml:"Domain"`
+		JWTSecret      string   `yaml:"JWTSecret"`
 		AllowedOrigins []string `yaml:"AllowedOrigins"`
 	} `yaml:"App"`
 

@@ -2,10 +2,10 @@ package router
 
 import (
 	"eirevpn/api/config"
-	"eirevpn/api/db"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
+	"eirevpn/api/server"
 	"eirevpn/api/util/jwt"
 	"io/ioutil"
 
@@ -36,25 +36,35 @@ func Init(conf config.Config, logging bool) *gin.Engine {
 	router.Use(cors.New(corsConfig))
 
 	public := router.Group("/api")
+	private := router.Group("/api/private")
+	protected := router.Group("/api/protected")
+	private.Use(auth(secretkey, conf.App.Domain, false))
+	protected.Use(auth(secretkey, conf.App.Domain, true))
+
 	public.POST("/user/signup", user.SignUpUser)
 	public.POST("/user/login", user.LoginUser)
 	public.POST("/user/webhook", user.Webhook)
-
-	private := router.Group("/api/private")
-	private.Use(auth(secretkey, conf.App.Domain))
 	private.GET("/user/updatepayment", user.StripeUpdatePaymentSession)
 	private.GET("/user/session/:planid", user.StripeSession)
 	private.GET("/user/cancel", user.CancelSubscription)
-	private.GET("/plans/:id", plan.Plan)
-	private.POST("/plans/create", plan.CreatePlan)
-	private.PUT("/plans/update/:id", plan.UpdatePlan)
-	private.DELETE("/plans/delete/:id", plan.DeletePlan)
-	private.GET("/plans", plan.AllPlans)
 
+	protected.GET("/plans/:id", plan.Plan)
+	protected.POST("/plans/create", plan.CreatePlan)
+	protected.PUT("/plans/update/:id", plan.UpdatePlan)
+	protected.DELETE("/plans/delete/:id", plan.DeletePlan)
+	public.GET("/plans", plan.AllPlans)
+
+	protected.GET("/servers/:id", server.Server)
+	protected.POST("/servers/create", server.CreateServer)
+	protected.PUT("/servers/update/:id", server.UpdateServer)
+	protected.DELETE("/servers/delete/:id", server.DeleteServer)
+	private.GET("/servers", server.AllServers)
+
+	router.Static("/assets", "./assets")
 	return router
 }
 
-func auth(secret, domain string) gin.HandlerFunc {
+func auth(secret, domain string, protected bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var usersession models.UserAppSession
@@ -103,8 +113,7 @@ func auth(secret, domain string) gin.HandlerFunc {
 				Identifier: refreshClaims.SessionIdentifier,
 			}
 
-			db := db.GetDB()
-			if err := db.Find(&usersession).Error; err != nil {
+			if err := usersession.Find(); err != nil {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
 					Code: errors.InvalidIdentifier.Code,
@@ -130,9 +139,10 @@ func auth(secret, domain string) gin.HandlerFunc {
 				reason = "Auth Claims is nil"
 			}
 			logger.Log(logger.Fields{
-				Loc:  "router.go - auth()",
-				Code: errors.CSRFTokenInvalid.Code,
-				Err:  reason,
+				Loc:   "router.go - auth()",
+				Code:  errors.CSRFTokenInvalid.Code,
+				Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
+				Err:   reason,
 			})
 			c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
 			return
@@ -141,6 +151,36 @@ func auth(secret, domain string) gin.HandlerFunc {
 		if usersession == (models.UserAppSession{}) {
 			usersession = models.UserAppSession{
 				UserID: authClaims.UserID,
+			}
+		}
+
+		if protected {
+			var user models.User
+			user.ID = usersession.UserID
+			if err := user.Find(); err != nil {
+				logger.Log(logger.Fields{
+					Loc: "router.go - auth()",
+					Extra: map[string]interface{}{
+						"UserID": usersession.UserID,
+						"Detail": "User Not found when checking user type",
+					},
+					Err: err.Error(),
+				})
+				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+				return
+			}
+
+			if user.Type != models.UserTypeAdmin {
+				logger.Log(logger.Fields{
+					Loc:  "router.go - auth()",
+					Code: errors.ProtectedRouted.Code,
+					Extra: map[string]interface{}{
+						"UserID": usersession.UserID,
+					},
+					Err: "User does not have permission to access route",
+				})
+				c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
+				return
 			}
 		}
 
@@ -178,7 +218,7 @@ func auth(secret, domain string) gin.HandlerFunc {
 		c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", domain, false, false)
 
 		// TODO: Change the domain name and add correct maxAge time
-		refreshCookieMaxAge := 72 * 60 * 60 // 72 hours in seconds
+		refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
 		c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", domain, false, false)
 		c.Header("X-CSRF-Token", newCsrfToken)
 	}

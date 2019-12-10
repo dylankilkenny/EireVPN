@@ -81,6 +81,21 @@ func CreateUser() *models.User {
 	return &user
 }
 
+// CreateAdminUser adds a new user to the db and returns the object
+func CreateAdminUser() *models.User {
+	user := models.User{
+		FirstName: "Dylan",
+		LastName:  "Kilkenny",
+		Email:     "email@email.com",
+		Password:  "password",
+		Type:      models.UserTypeAdmin}
+	err := dbInstance.Create(&user).Error
+	if err != nil {
+		fmt.Println("CreatUser() - ", err)
+	}
+	return &user
+}
+
 // CreatePlan creates a new plan record in the db
 func CreatePlan() *models.Plan {
 	plan := models.Plan{
@@ -97,11 +112,28 @@ func CreatePlan() *models.Plan {
 	return &plan
 }
 
+// CreateServer creates a new server record in the db
+func CreateServer() *models.Server {
+	server := models.Server{
+		Country:     "Ireland",
+		CountryCode: "IE",
+		Type:        models.ServerTypeProxy,
+		IP:          "127.0.0.1",
+		Port:        8080,
+	}
+	err := dbInstance.Create(&server).Error
+	if err != nil {
+		fmt.Println("CreateServer() - ", err)
+	}
+	return &server
+}
+
 // CreateCleanDB drops exisitng tables and recreates them
 func CreateCleanDB() {
 	dbInstance.DropTableIfExists(&models.User{})
 	dbInstance.DropTableIfExists(&models.Plan{})
 	dbInstance.DropTableIfExists(&models.UserAppSession{})
+	dbInstance.DropTableIfExists(&models.Server{})
 
 	if !dbInstance.HasTable(&models.User{}) {
 		dbInstance.CreateTable(&models.User{})
@@ -114,11 +146,20 @@ func CreateCleanDB() {
 	if !dbInstance.HasTable(&models.UserAppSession{}) {
 		dbInstance.CreateTable(&models.UserAppSession{})
 	}
+
+	if !dbInstance.HasTable(&models.Server{}) {
+		dbInstance.CreateTable(&models.Server{})
+	}
 }
 
 // DropPlanTable dros the plan table from the db
 func DropPlanTable() {
 	dbInstance.DropTableIfExists(&models.Plan{})
+}
+
+// DropServerTable dros the server table from the db
+func DropServerTable() {
+	dbInstance.DropTableIfExists(&models.Server{})
 }
 
 // GetToken fetches a jwt token for the given user

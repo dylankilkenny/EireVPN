@@ -14,6 +14,13 @@ type UserAppSession struct {
 	Identifier string `json:"indentifier"`
 }
 
+func (us *UserAppSession) Find() error {
+	if err := db().Where(&us).First(&us).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 // New adds a new user session and deletes all old sessions
 func (us *UserAppSession) New(UserID uint) error {
 	us.UserID = UserID

@@ -10,14 +10,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserType string
+
+var (
+	UserTypeNormal UserType = "normal"
+	UserTypeAdmin  UserType = "admin"
+)
+
 // User contains the users details
 type User struct {
 	BaseModel
-	FirstName        string `json:"firstname"`
-	LastName         string `json:"lastname"`
-	Email            string `json:"email" binding:"required"`
-	Password         string `json:"password" binding:"required"`
-	StripeCustomerID string `json:"stripe_customer_id"`
+	FirstName        string   `json:"firstname"`
+	LastName         string   `json:"lastname"`
+	Email            string   `json:"email" binding:"required"`
+	Password         string   `json:"password" binding:"required"`
+	StripeCustomerID string   `json:"stripe_customer_id"`
+	Type             UserType `json:"type"`
 }
 
 func (u *User) Find() error {

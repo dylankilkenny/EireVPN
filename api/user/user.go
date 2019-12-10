@@ -81,15 +81,15 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	var conf config.Config
+	conf := config.GetConfig()
 
 	// TODO: Change the domain name and add correct maxAge time
 	authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-	c.SetCookie("authToken", authToken, authCookieMaxAge, "/", conf.App.Domain, false, false)
+	c.SetCookie("authToken", authToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
 
 	// TODO: Change the domain name and add correct maxAge time
-	refreshCookieMaxAge := 72 * 60 * 60 // 72 hours in seconds
-	c.SetCookie("refreshToken", refreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, false)
+	refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
+	c.SetCookie("refreshToken", refreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, true)
 
 	c.Header("X-CSRF-Token", csrfToken)
 	c.JSON(http.StatusOK, gin.H{
@@ -102,7 +102,6 @@ func LoginUser(c *gin.Context) {
 // SignUpUser registers a new user
 func SignUpUser(c *gin.Context) {
 	var user models.User
-
 	if err := c.BindJSON(&user); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/signup - SignUpUser()",
@@ -127,6 +126,7 @@ func SignUpUser(c *gin.Context) {
 		return
 	}
 
+	user.Type = models.UserTypeNormal
 	if err := user.Create(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/signup - SignUpUser()",
