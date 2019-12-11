@@ -120,7 +120,7 @@ func SignUpUser(c *gin.Context) {
 			Loc:   "/signup - SignUpUser()",
 			Code:  errors.EmailTaken.Code,
 			Extra: map[string]interface{}{"Email": user.Email},
-			Err:   err.Error(),
+			Err:   errors.EmailTaken.Detail,
 		})
 		c.JSON(errors.EmailTaken.Status, errors.EmailTaken)
 		return
