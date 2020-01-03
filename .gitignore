@@ -1,0 +1,11 @@
+browser/node_modules
+browser/dist
+browser/dev
+browser/temp
+browser/.idea
+browser/.vscode
+
+api/.vscode
+api/tmp
+api/pgdata
+api/config.yaml
