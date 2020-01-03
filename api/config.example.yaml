@@ -6,14 +6,15 @@ App:
     - http://localhost/
 
 DB:
-  User: test
-  Password: test
+  User: eirevpn_dev
+  Password: eirevpn_dev
   Database: eirevpn_dev
   Host: localhost
   Port: 5432
+
 Stripe:
-  SecretKey: sk_test_kLGFCqgqvp8m4xItjb7tCutQ00aVWpUjWt
-  EndpointSecret: whsec_NiHocSXUplUAkCIk2R4uai3gMXHYILPs
-  IntegrationActive: true
+  SecretKey: sk_test_sssssssssss
+  EndpointSecret: whsec_ssssssssss
+  IntegrationActive: false
   SuccessUrl: https://eirevpn.ie/success
   ErrorUrl: https://eirevpn.ie/error
