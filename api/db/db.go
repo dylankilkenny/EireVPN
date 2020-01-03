@@ -32,7 +32,7 @@ func Init(config config.Config, debug bool, models []interface{}) {
 
 	if err != nil {
 		log.Println("Failed to connect to database")
-		panic(err)
+		panic(err.Error())
 	}
 	log.Println("Database connected")
 

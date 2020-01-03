@@ -130,9 +130,10 @@ func UpdateServer(c *gin.Context) {
 	server.ID = uint(ServerID)
 
 	type ServerUpdates struct {
-		IP string `json:"ip" binding:"required"`
+		IP   string `json:"ip" binding:"required"`
+		Port int    `json:"port" binding:"required"`
 	}
-	serverUdates := ServerUpdates{}
+	serverUpdates := ServerUpdates{}
 
 	if err := server.Find(); err != nil {
 		logger.Log(logger.Fields{
@@ -145,7 +146,7 @@ func UpdateServer(c *gin.Context) {
 		return
 	}
 
-	if err := c.BindJSON(&serverUdates); err != nil {
+	if err := c.BindJSON(&serverUpdates); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/server/update/:id - UpdateServer()",
 			Code:  errors.InvalidForm.Code,
@@ -156,7 +157,8 @@ func UpdateServer(c *gin.Context) {
 		return
 	}
 
-	server.IP = serverUdates.IP
+	server.IP = serverUpdates.IP
+	server.Port = serverUpdates.Port
 	if err := server.Save(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/server/update/:id - UpdateServer()",

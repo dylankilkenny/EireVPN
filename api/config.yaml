@@ -1,9 +1,9 @@
 App:
   Port: 3001
-  Domain: 0.0.0.0
+  Domain: localhost
   JWTSecret: secretkey1995
   AllowedOrigins:
-    - http://localhost:8080
+    - http://localhost/
 
 DB:
   User: test
