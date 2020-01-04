@@ -32,6 +32,7 @@ export default class ServicesUtil {
           })
           .catch(error => {
             console.log(error);
+            return error;
           });
       });
   }

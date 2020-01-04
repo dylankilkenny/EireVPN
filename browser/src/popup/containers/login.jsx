@@ -40,7 +40,6 @@ class Login extends React.Component {
 
   login() {
     AuthService.login(this.state.email, this.state.password).then(resp => {
-      console.log(resp.status);
       if (resp.status === 200) {
         this.props.authorise(true);
       } else if (resp.status === 400 || resp.status === 401) {
