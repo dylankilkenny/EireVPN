@@ -130,8 +130,10 @@ func UpdateServer(c *gin.Context) {
 	server.ID = uint(ServerID)
 
 	type ServerUpdates struct {
-		IP   string `json:"ip" binding:"required"`
-		Port int    `json:"port" binding:"required"`
+		IP       string `json:"ip" binding:"required"`
+		Port     int    `json:"port" binding:"required"`
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
 	}
 	serverUpdates := ServerUpdates{}
 
@@ -159,6 +161,8 @@ func UpdateServer(c *gin.Context) {
 
 	server.IP = serverUpdates.IP
 	server.Port = serverUpdates.Port
+	server.Username = serverUpdates.Username
+	server.Password = serverUpdates.Password
 	if err := server.Save(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/server/update/:id - UpdateServer()",

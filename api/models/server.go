@@ -23,6 +23,8 @@ type Server struct {
 	Type        ServerType `form:"type" json:"type" binding:"required"`
 	IP          string     `form:"ip" json:"ip" binding:"required"`
 	Port        int        `form:"port" json:"port" binding:"required"`
+	Username    string     `form:"username" json:"username" binding:"required"`
+	Password    string     `form:"password" json:"password" binding:"required"`
 	ImagePath   string     `form:"image_path" json:"image_path"`
 }
 
