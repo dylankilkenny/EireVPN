@@ -9,7 +9,7 @@ import AuthService from '../services/authService';
 const views = {
   login: 0,
   main: 1,
-  settings: 2,
+  settings: 2
 };
 
 class Popup extends React.Component {
@@ -25,7 +25,9 @@ class Popup extends React.Component {
   componentWillMount() {}
 
   componentDidMount() {
-    AuthService.isLoggedIn().then((isLoggedIn) => {
+    console.log(process.env.API_URL);
+
+    AuthService.isLoggedIn().then(isLoggedIn => {
       let renderView;
       if (!isLoggedIn) {
         renderView = views.login;
@@ -68,7 +70,10 @@ class Popup extends React.Component {
       case 1:
         return (
           <PopupContainer>
-            <Header view={this.state.renderView} renderSettings={this.renderSettings} />
+            <Header
+              view={this.state.renderView}
+              renderSettings={this.renderSettings}
+            />
             <div>
               <Main />
             </div>

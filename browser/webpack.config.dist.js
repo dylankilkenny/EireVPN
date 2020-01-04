@@ -1,5 +1,14 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const { getHTMLPlugins, getOutput, getCopyPlugins, getZipPlugin, getFirefoxCopyPlugins, getEntry } = require('./webpack.utils');
+const {
+  getHTMLPlugins,
+  getOutput,
+  getCopyPlugins,
+  getZipPlugin,
+  getFirefoxCopyPlugins,
+  getEntry,
+  getChromeEntry,
+  getDefinePlugin
+} = require('./webpack.utils');
 const config = require('./config.json');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
@@ -12,47 +21,48 @@ const generalConfig = {
         exclude: /node_modules/,
         test: /\.(js|jsx)$/,
         query: {
-          presets: ['@babel/preset-env','@babel/preset-react'],
+          presets: ['@babel/preset-env', '@babel/preset-react']
         },
         resolve: {
-          extensions: ['.js', '.jsx'],
-        },
+          extensions: ['.js', '.jsx']
+        }
       },
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: ['eslint-loader'],
+        use: ['eslint-loader']
       },
       {
         test: /\.scss$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: 'style-loader'
           },
           {
-            loader: 'css-loader',
+            loader: 'css-loader'
           },
           {
-            loader: 'sass-loader',
-          },
-        ],
-      },
-    ],
-  },
+            loader: 'sass-loader'
+          }
+        ]
+      }
+    ]
+  }
 };
 
 module.exports = [
   {
     ...generalConfig,
     output: getOutput('chrome', config.tempDirectory),
-    entry: getEntry(config.chromePath),
+    entry: getChromeEntry(config.chromePath),
     plugins: [
       new CleanWebpackPlugin(['dist', 'temp']),
       new UglifyJsPlugin(),
       ...getHTMLPlugins('chrome', config.tempDirectory, config.chromePath),
       ...getCopyPlugins('chrome', config.tempDirectory, config.chromePath),
       getZipPlugin('chrome', config.distDirectory),
-    ],
+      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie/'))
+    ]
   },
   {
     ...generalConfig,
@@ -63,8 +73,8 @@ module.exports = [
       new UglifyJsPlugin(),
       ...getHTMLPlugins('opera', config.tempDirectory, config.operaPath),
       ...getCopyPlugins('opera', config.tempDirectory, config.operaPath),
-      getZipPlugin('opera', config.distDirectory),
-    ],
+      getZipPlugin('opera', config.distDirectory)
+    ]
   },
   {
     ...generalConfig,
@@ -74,8 +84,13 @@ module.exports = [
       new CleanWebpackPlugin(['dist', 'temp']),
       new UglifyJsPlugin(),
       ...getHTMLPlugins('firefox', config.tempDirectory, config.firefoxPath),
-      ...getFirefoxCopyPlugins('firefox', config.tempDirectory, config.firefoxPath),
+      ...getFirefoxCopyPlugins(
+        'firefox',
+        config.tempDirectory,
+        config.firefoxPath
+      ),
       getZipPlugin('firefox', config.distDirectory),
-    ],
-  },
+      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie/'))
+    ]
+  }
 ];

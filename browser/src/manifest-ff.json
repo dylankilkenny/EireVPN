@@ -8,15 +8,6 @@
     "48": "assets/icons/eirevpn-48.png"
   },
   "default_locale": "en",
-  "content_scripts": [{
-    "matches": [
-      "http://*/*",
-      "https://*/*"
-    ],
-    "js": [
-      "content/content.js"
-    ]
-  }],
   "background": {
     "scripts": [
       "background/background.js",
@@ -34,9 +25,6 @@
     "*://0.0.0.0/*",
     "*://localhost/*"
   ],
-  "options_ui": {
-    "page": "options/index.html"
-  },
   "browser_action": {
     "default_icon": {
       "48": "assets/icons/eirevpn-48.png"

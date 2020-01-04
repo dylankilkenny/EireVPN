@@ -36,8 +36,9 @@ class Main extends React.Component {
       });
   }
 
-  connect(ip, port) {
-    sendMessage('connect', { ip, port });
+  connect(ip, port, username, password) {
+    sendMessage('connect', { ip, port, username, password });
+    console.log('trying');
     ext.storage.local.set({ connectedTo: ip }, () => {
       this.setState({ connectedTo: ip });
     });
@@ -58,10 +59,10 @@ class Main extends React.Component {
           <Table size="sm">
             <tbody>
               {this.state.servers.map(server => (
-                <tr>
+                <tr key={server.ip}>
                   <td style={{ verticalAlign: 'middle' }}>
                     <Image
-                      src={`http://localhost:3001/${server.image_path}`}
+                      src={process.env.API_URL + server.image_path}
                       roundedCircle
                     />
                   </td>
@@ -73,7 +74,14 @@ class Main extends React.Component {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => this.connect(server.ip, server.port)}
+                        onClick={() =>
+                          this.connect(
+                            server.ip,
+                            server.port,
+                            server.username,
+                            server.password
+                          )
+                        }
                         variant="link"
                       >
                         Connect

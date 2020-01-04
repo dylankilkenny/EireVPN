@@ -19,18 +19,20 @@ export default class ServicesUtil {
         if (csrf !== undefined) {
           headers['X-CSRF-Token'] = csrf;
         }
-        console.log('pre fetch');
 
         return fetch(url, {
           headers,
           ...options
-        }).then(resp => {
-          if (resp.status === 200) {
-            ServicesUtil.setCsrfToken(resp.headers.get('X-CSRF-Token'));
-          }
-          console.log(resp);
-          return resp.json();
-        });
+        })
+          .then(resp => {
+            if (resp.status === 200) {
+              ServicesUtil.setCsrfToken(resp.headers.get('X-CSRF-Token'));
+            }
+            return resp.json();
+          })
+          .catch(error => {
+            console.log(error);
+          });
       });
   }
 

@@ -13,7 +13,7 @@ export default class AuthService {
 
   static login(email, password) {
     // Get a token from api server using the fetch api
-    return ServicesUtil.fetch('http://0.0.0.0:3001/api/user/login', {
+    return ServicesUtil.fetch(`${process.env.API_URL}api/user/login`, {
       method: 'POST',
       body: JSON.stringify({
         email,

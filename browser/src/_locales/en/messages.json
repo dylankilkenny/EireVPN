@@ -1,0 +1,14 @@
+{
+    "appName": {
+        "message": "ÉireVPN",
+        "description": "The name of the react extension."
+    },
+    "appDescription": {
+        "message": "ÉireVPN is an irish based VPN solution",
+        "description": "The description of the extension."
+    },
+    "btnTooltip": {
+        "message": "ÉireVPN",
+        "description": "Tooltip for the button."
+    }
+}

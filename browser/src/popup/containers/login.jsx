@@ -16,14 +16,14 @@ class Login extends React.Component {
     this.state = {
       email: '',
       password: '',
-      showAlert: false,
+      showAlert: false
     };
     this.login = this.login.bind(this);
     this.updateFormValue = this.updateFormValue.bind(this);
   }
 
   componentDidMount() {
-    ext.storage.local.get('email', (resp) => {
+    ext.storage.local.get('email', resp => {
       const { email } = resp;
       if (email) {
         this.setState({ email });
@@ -34,16 +34,20 @@ class Login extends React.Component {
   updateFormValue(evt, element) {
     ext.storage.local.set({ [element]: evt.target.value }, () => {});
     this.setState({
-      [element]: evt.target.value,
+      [element]: evt.target.value
     });
   }
 
   login() {
-    AuthService.login(this.state.email, this.state.password).then((resp) => {
+    AuthService.login(this.state.email, this.state.password).then(resp => {
+      console.log(resp.status);
       if (resp.status === 200) {
         this.props.authorise(true);
       } else if (resp.status === 400 || resp.status === 401) {
-        this.setState({ showAlert: true, alertMsg: 'Email/Password Incorrect.' });
+        this.setState({
+          showAlert: true,
+          alertMsg: 'Email/Password Incorrect.'
+        });
       } else {
         this.setState({ showAlert: true, alertMsg: 'Something Went Wrong.' });
       }
@@ -85,7 +89,11 @@ class Login extends React.Component {
                 </Col>
               </Form.Group>
             </Form>
-            <Alert style={{ fontSize: 14 }} show={this.state.showAlert} variant="danger">
+            <Alert
+              style={{ fontSize: 14 }}
+              show={this.state.showAlert}
+              variant="danger"
+            >
               {this.state.alertMsg}
             </Alert>
             <Button onClick={this.login} variant="secondary">
@@ -99,7 +107,7 @@ class Login extends React.Component {
 }
 
 Login.propTypes = {
-  authorise: PropTypes.func.isRequired,
+  authorise: PropTypes.func.isRequired
 };
 
 export default Login;
