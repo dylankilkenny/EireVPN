@@ -7,4 +7,13 @@ export default class ApiService {
       method: 'GET'
     });
   }
+  static connectServer(serverId) {
+    // Get a token from api server using the fetch api
+    return ServicesUtil.fetch(
+      `${process.env.API_URL}api/private/servers/connect/${serverId}`,
+      {
+        method: 'GET'
+      }
+    );
+  }
 }

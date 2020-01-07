@@ -43,6 +43,7 @@ var (
 	InvalidIdentifier           = APIError{401, "INVIDENTIFIER", "Invlaid identifier", "Invlaid identifier"}
 	CSRFTokenInvalid            = APIError{401, "CSRFTOKEN", "CSRF Token", "CSRF token is invalid"}
 	ProtectedRouted             = APIError{400, "PROTECTROUTE", "Protected Route", "You do not have the correct permissions to access this route."}
+	UserPlanExpired             = APIError{401, "EXPIREDPLAN", "User Plan Expired", "You do not have an active plan."}
 )
 
 func (err *APIError) Error() string {
