@@ -21,7 +21,7 @@ var conf config.Config
 const secretkey = "verysecretkey1995"
 
 func Init(c config.Config, logging bool) *gin.Engine {
-	conf := c
+	conf = c
 	var router *gin.Engine
 	if logging {
 		router = gin.Default()
