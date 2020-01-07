@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -53,9 +54,9 @@ func assertCorrectCode(t *testing.T, want, got string) {
 func InitDB() {
 
 	conf := config.GetConfig()
-	conf.DB.Port = 5432
-	conf.DB.User = "test"
-	conf.DB.Password = "test"
+	conf.DB.Port = 5431
+	conf.DB.User = "eirevpn_test"
+	conf.DB.Password = "eirevpn_test"
 	conf.DB.Host = "localhost"
 	conf.DB.Database = "eirevpn_test"
 
@@ -112,6 +113,22 @@ func CreatePlan() *models.Plan {
 	return &plan
 }
 
+// CreateUserPlan creates a new user plan record in the db
+func CreateUserPlan(planID, userID uint, active bool) *models.UserPlan {
+	userPlan := models.UserPlan{
+		UserID:     userID,
+		PlanID:     planID,
+		Active:     active,
+		StartDate:  time.Now(),
+		ExpiryDate: time.Now().Add(time.Hour),
+	}
+	err := dbInstance.Create(&userPlan).Error
+	if err != nil {
+		fmt.Println("CreateUserPlan() - ", err)
+	}
+	return &userPlan
+}
+
 // CreateServer creates a new server record in the db
 func CreateServer() *models.Server {
 	server := models.Server{
@@ -134,6 +151,7 @@ func CreateCleanDB() {
 	dbInstance.DropTableIfExists(&models.Plan{})
 	dbInstance.DropTableIfExists(&models.UserAppSession{})
 	dbInstance.DropTableIfExists(&models.Server{})
+	dbInstance.DropTableIfExists(&models.UserPlan{})
 
 	if !dbInstance.HasTable(&models.User{}) {
 		dbInstance.CreateTable(&models.User{})
@@ -149,6 +167,10 @@ func CreateCleanDB() {
 
 	if !dbInstance.HasTable(&models.Server{}) {
 		dbInstance.CreateTable(&models.Server{})
+	}
+
+	if !dbInstance.HasTable(&models.UserPlan{}) {
+		dbInstance.CreateTable(&models.UserPlan{})
 	}
 }
 

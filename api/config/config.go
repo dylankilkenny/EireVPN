@@ -49,7 +49,3 @@ func Init(filename string) {
 func GetConfig() Config {
 	return conf
 }
-
-func UseStripeIntegration(value bool) {
-	conf.Stripe.IntegrationActive = value
-}

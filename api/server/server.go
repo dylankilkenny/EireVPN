@@ -207,6 +207,8 @@ func Connect(c *gin.Context) {
 				"Detail": "User ID does not exist in the context",
 			},
 		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
 	}
 
 	var userplan models.UserPlan
@@ -221,7 +223,7 @@ func Connect(c *gin.Context) {
 			},
 			Err: err.Error(),
 		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		c.AbortWithStatusJSON(errors.UserPlanNotFound.Status, errors.UserPlanNotFound)
 		return
 	}
 
