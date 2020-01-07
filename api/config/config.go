@@ -13,6 +13,7 @@ type Config struct {
 		Domain         string   `yaml:"Domain"`
 		JWTSecret      string   `yaml:"JWTSecret"`
 		AllowedOrigins []string `yaml:"AllowedOrigins"`
+		EnableCSRF     bool     `yaml:"EnableCSRF"`
 	} `yaml:"App"`
 
 	DB struct {
