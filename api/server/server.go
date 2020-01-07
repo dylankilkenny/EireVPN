@@ -6,6 +6,7 @@ import (
 	"eirevpn/api/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -180,6 +181,76 @@ func UpdateServer(c *gin.Context) {
 	})
 }
 
+// Connect returns a username and password for the server if the user
+// has a valid subscription
+func Connect(c *gin.Context) {
+	serverID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var server models.Server
+	server.ID = uint(serverID)
+	if err := server.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/server/:id - Server()",
+			Code:  errors.ServerNotFound.Code,
+			Extra: map[string]interface{}{"ConnID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.ServerNotFound.Status, errors.ServerNotFound)
+		return
+	}
+
+	userID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/server/connect/:id - Connect()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+	}
+
+	var userplan models.UserPlan
+	userplan.UserID = userID.(uint)
+	if err := userplan.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/server/connect/:id - Connect()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": userplan.UserID,
+				"Detail": "Could not find user_plan record",
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	userPlanExpired := userplan.ExpiryDate.Before(time.Now())
+	if !userplan.Active || userPlanExpired {
+		logger.Log(logger.Fields{
+			Loc:  "/server/connect/:id - Connect()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": userplan.UserID,
+			},
+			Err: errors.UserPlanExpired.Detail,
+		})
+		c.AbortWithStatusJSON(errors.UserPlanExpired.Status, errors.UserPlanExpired)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"data": gin.H{
+			"username": server.Username,
+			"password": server.Password,
+			"port":     server.Port,
+			"ip":       server.IP,
+		},
+	})
+
+}
+
 // AllServers returns an array of all available servers
 func AllServers(c *gin.Context) {
 	var servers models.AllServers
@@ -191,6 +262,15 @@ func AllServers(c *gin.Context) {
 			Err:  err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	// dont send username and passwords
+	for i, s := range servers {
+		s.Username = ""
+		s.Password = ""
+		s.IP = ""
+		s.Port = 0000
+		servers[i] = s
 	}
 
 	c.JSON(http.StatusOK, gin.H{

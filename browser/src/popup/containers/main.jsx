@@ -3,6 +3,7 @@ import Image from 'react-bootstrap/Image';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import styled from 'styled-components';
+import Alert from 'react-bootstrap/Alert';
 import ApiService from '../services/apiService';
 import sendMessage from '../services/comunicationManager';
 import ext from '../../utils/ext';
@@ -17,7 +18,8 @@ class Main extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      connectedTo: ''
+      connectedTo: '',
+      showAlert: false
     };
   }
 
@@ -36,12 +38,28 @@ class Main extends React.Component {
       });
   }
 
-  connect(ip, port, username, password) {
-    sendMessage('connect', { ip, port, username, password });
-    console.log('trying');
-    ext.storage.local.set({ connectedTo: ip }, () => {
-      this.setState({ connectedTo: ip });
-    });
+  connect(serverid) {
+    ApiService.connectServer(serverid)
+      .then(resp => {
+        if (resp.status === 401) {
+          throw Error;
+        }
+        const { username } = resp.data;
+        const { password } = resp.data;
+        const { ip } = resp.data;
+        const { port } = resp.data;
+        sendMessage('connect', { ip, port, username, password });
+        ext.storage.local.set({ connectedTo: serverid }, () => {
+          this.setState({ connectedTo: serverid });
+        });
+      })
+      .catch(() => {
+        this.setState({
+          showAlert: true,
+          alertMsg:
+            'You do not have an active subscription. Please purchase a subscription to continue using this service.'
+        });
+      });
   }
 
   disconnect() {
@@ -56,6 +74,13 @@ class Main extends React.Component {
     return (
       <div>
         <ServersContainer>
+          <Alert
+            style={{ fontSize: 14 }}
+            show={this.state.showAlert}
+            variant="danger"
+          >
+            {this.state.alertMsg}
+          </Alert>
           <Table size="sm">
             <tbody>
               {this.state.servers.map(server => (
@@ -68,20 +93,13 @@ class Main extends React.Component {
                   </td>
                   <td style={{ verticalAlign: 'middle' }}>{server.country}</td>
                   <td style={{ verticalAlign: 'middle' }}>
-                    {this.state.connectedTo === server.ip ? (
+                    {this.state.connectedTo === server.id ? (
                       <Button onClick={() => this.disconnect()} variant="link">
                         Disconnect
                       </Button>
                     ) : (
                       <Button
-                        onClick={() =>
-                          this.connect(
-                            server.ip,
-                            server.port,
-                            server.username,
-                            server.password
-                          )
-                        }
+                        onClick={() => this.connect(server.id)}
                         variant="link"
                       >
                         Connect

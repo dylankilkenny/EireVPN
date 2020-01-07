@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Cart contains the details of which plans each user is signed trying to purchase
+// Cart contains the details of which plans each user is trying to purchase
 type Cart struct {
 	BaseModel
 	UserID uint `json:"user_id"`

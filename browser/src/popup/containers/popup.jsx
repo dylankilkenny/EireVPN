@@ -25,8 +25,6 @@ class Popup extends React.Component {
   componentWillMount() {}
 
   componentDidMount() {
-    console.log(process.env.API_URL);
-
     AuthService.isLoggedIn().then(isLoggedIn => {
       let renderView;
       if (!isLoggedIn) {
