@@ -4,6 +4,7 @@ App:
   JWTSecret: secretkey1995
   AllowedOrigins:
     - http://localhost/
+  EnableCSRF: false
 
 DB:
   User: eirevpn_dev

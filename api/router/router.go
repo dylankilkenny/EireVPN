@@ -16,9 +16,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var conf config.Config
+
 const secretkey = "verysecretkey1995"
 
-func Init(conf config.Config, logging bool) *gin.Engine {
+func Init(c config.Config, logging bool) *gin.Engine {
+	conf := c
 	var router *gin.Engine
 	if logging {
 		router = gin.Default()
@@ -58,6 +61,7 @@ func Init(conf config.Config, logging bool) *gin.Engine {
 	protected.POST("/servers/create", server.CreateServer)
 	protected.PUT("/servers/update/:id", server.UpdateServer)
 	protected.DELETE("/servers/delete/:id", server.DeleteServer)
+	private.GET("/servers/connect/:id", server.Connect)
 	private.GET("/servers", server.AllServers)
 
 	router.Static("/assets", "./assets")
@@ -127,25 +131,27 @@ func auth(secret, domain string, protected bool) gin.HandlerFunc {
 
 		// If auth token or refresh token is valid check if crsf token matches the one supplied
 		// in the header
-		if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
-			var reason string
-			if authClaims.CSRF == "" {
-				reason = "CSRF token is missing from claims"
+		if conf.App.EnableCSRF {
+			if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
+				var reason string
+				if authClaims.CSRF == "" {
+					reason = "CSRF token is missing from claims"
+				}
+				if c.GetHeader("X-CSRF-Token") == "" {
+					reason = "CSRF token is missing from header"
+				}
+				if authClaims == nil {
+					reason = "Auth Claims is nil"
+				}
+				logger.Log(logger.Fields{
+					Loc:   "router.go - auth()",
+					Code:  errors.CSRFTokenInvalid.Code,
+					Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
+					Err:   reason,
+				})
+				c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
+				return
 			}
-			if c.GetHeader("X-CSRF-Token") == "" {
-				reason = "CSRF token is missing from header"
-			}
-			if authClaims == nil {
-				reason = "Auth Claims is nil"
-			}
-			logger.Log(logger.Fields{
-				Loc:   "router.go - auth()",
-				Code:  errors.CSRFTokenInvalid.Code,
-				Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
-				Err:   reason,
-			})
-			c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
-			return
 		}
 
 		if usersession == (models.UserAppSession{}) {
