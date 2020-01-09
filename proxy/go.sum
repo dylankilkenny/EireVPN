@@ -1,5 +1,9 @@
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
+github.com/dylankilkenny/goproxy v0.0.0-20200109204127-1c107847a855 h1:E1cvKqWpoqI2y7p0JnUsB8SiXKbGjqLd+PqFLEXuQOI=
+github.com/dylankilkenny/goproxy v0.0.0-20200109204127-1c107847a855/go.mod h1:0kYif2kfds0D2VPlQYwBuF79c0hxgr6nSRPm2+KuvtA=
+github.com/dylankilkenny/goproxy/ext v0.0.0-20200109204127-1c107847a855 h1:dREF3NkYnTACtJ8XuCnc3tpN92GUMfIcxGs5SpGMkTg=
+github.com/dylankilkenny/goproxy/ext v0.0.0-20200109204127-1c107847a855/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 h1:aZtFdDNWY/yH86JPR2WX/PN63635VsE/f/nXNPAbYxY=
 github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 h1:dWB6v3RcOy03t/bUadywsbyrQwCqZeNIEX6M1OtSZOM=

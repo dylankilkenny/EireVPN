@@ -9,3 +9,7 @@ require (
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	gopkg.in/yaml.v2 v2.2.7
 )
+
+replace github.com/elazarl/goproxy => github.com/dylankilkenny/goproxy v0.0.0-20200109204127-1c107847a855
+
+replace github.com/elazarl/goproxy/ext => github.com/dylankilkenny/goproxy/ext v0.0.0-20200109204127-1c107847a855
