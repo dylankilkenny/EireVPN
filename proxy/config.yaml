@@ -1,0 +1,5 @@
+App:
+  ProxyPort: 11211
+  RestPort: 3003
+  ProxyUsername:
+  ProxyPassword:
