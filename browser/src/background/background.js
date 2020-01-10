@@ -2,7 +2,7 @@ import ext from '../utils/ext';
 
 let proxyUsername;
 let proxyPassword;
-let pendingRequests = [];
+const pendingRequests = [];
 
 // A request has completed.
 // We can stop worrying about it.
@@ -56,6 +56,8 @@ function disconnectProxy() {
       console.log('proxy disconnect failed');
     }
   }
+  proxyUsername = undefined;
+  proxyPassword = undefined;
   const clearing = ext.proxy.settings.clear({});
   clearing.then(onCleared);
 }

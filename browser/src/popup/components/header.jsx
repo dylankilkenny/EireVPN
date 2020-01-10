@@ -63,7 +63,7 @@ const Header = ({ view, renderSettings, renderMain }) => {
     case 2:
       return <SettingsHeader renderMain={renderMain} />;
     default:
-      return <div />;
+      return <LoginHeader />;
   }
 };
 

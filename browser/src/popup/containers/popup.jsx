@@ -1,15 +1,18 @@
 import React from 'react';
 import Login from './login';
 import Header from '../components/header';
+import LargeAlert from '../components/largeAlert';
 import PopupContainer from '../components/container';
 import Settings from '../containers/settings';
 import Main from '../containers/main';
 import AuthService from '../services/authService';
+import ext from '../../utils/ext';
 
 const views = {
   login: 0,
   main: 1,
-  settings: 2
+  settings: 2,
+  incognito: 3
 };
 
 class Popup extends React.Component {
@@ -20,11 +23,27 @@ class Popup extends React.Component {
     this.logout = this.logout.bind(this);
     this.renderSettings = this.renderSettings.bind(this);
     this.renderMain = this.renderMain.bind(this);
+    this.checkAuth = this.checkAuth.bind(this);
   }
 
   componentWillMount() {}
 
   componentDidMount() {
+    const isFirefox = typeof InstallTrigger !== 'undefined';
+    if (isFirefox) {
+      ext.extension.isAllowedIncognitoAccess().then(allowed => {
+        if (allowed) {
+          this.checkAuth();
+        } else {
+          this.setState({ renderView: views.incognito });
+        }
+      });
+    } else {
+      this.checkAuth();
+    }
+  }
+
+  checkAuth() {
     AuthService.isLoggedIn().then(isLoggedIn => {
       let renderView;
       if (!isLoggedIn) {
@@ -82,6 +101,17 @@ class Popup extends React.Component {
           <PopupContainer>
             <Header view={this.state.renderView} renderMain={this.renderMain} />
             <Settings renderMain={this.renderMain} logout={this.logout} />
+          </PopupContainer>
+        );
+      case 3:
+        return (
+          <PopupContainer>
+            <Header view={this.state.renderView} renderMain={this.renderMain} />
+            <LargeAlert
+              variant="warning"
+              heading="Private Browsing Disabled"
+              body="To use this extension private browsing is required. To enable private browsing right click on this extension and choose manage extension. You will see an option 'Run in Private Windows', click allow."
+            />
           </PopupContainer>
         );
       default:
