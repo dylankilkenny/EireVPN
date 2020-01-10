@@ -38,7 +38,7 @@ func startAPI() {
 		config.App.ProxyPassword = cred.Password
 		fmt.Println(config)
 	})
-	fmt.Println("REST API Running")
+	fmt.Println("REST API Started")
 	http.ListenAndServe(":"+config.App.RestPort, nil)
 }
 
@@ -48,12 +48,12 @@ func startProxy() {
 	auth.ProxyBasic(proxy, "Auth", func(user, passwd string) bool {
 		fmt.Println(config)
 		if user == config.App.ProxyUsername && passwd == config.App.ProxyPassword {
-			fmt.Println("correct user pass")
+			fmt.Println("Authenticated, allowing connection.")
 			return true
 		}
-		fmt.Println("wrong user pass")
+		fmt.Printf("Wrong Credentials: %s:%s \n", user, passwd)
 		return false
 	})
-	fmt.Println("Proxy Running")
+	fmt.Println("Proxy Started")
 	log.Fatal(http.ListenAndServe(":"+config.App.ProxyPort, proxy))
 }
