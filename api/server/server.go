@@ -1,8 +1,10 @@
 package server
 
 import (
+	"eirevpn/api/config"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
+
 	"eirevpn/api/models"
 	"net/http"
 	"strconv"
@@ -211,34 +213,51 @@ func Connect(c *gin.Context) {
 		return
 	}
 
-	var userplan models.UserPlan
-	userplan.UserID = userID.(uint)
-	if err := userplan.Find(); err != nil {
-		logger.Log(logger.Fields{
-			Loc:  "/server/connect/:id - Connect()",
-			Code: errors.InternalServerError.Code,
-			Extra: map[string]interface{}{
-				"UserID": userplan.UserID,
-				"Detail": "Could not find user_plan record",
-			},
-			Err: err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.UserPlanNotFound.Status, errors.UserPlanNotFound)
-		return
-	}
-
-	userPlanExpired := userplan.ExpiryDate.Before(time.Now())
-	if !userplan.Active || userPlanExpired {
-		logger.Log(logger.Fields{
-			Loc:  "/server/connect/:id - Connect()",
-			Code: errors.InternalServerError.Code,
-			Extra: map[string]interface{}{
-				"UserID": userplan.UserID,
-			},
-			Err: errors.UserPlanExpired.Detail,
-		})
-		c.AbortWithStatusJSON(errors.UserPlanExpired.Status, errors.UserPlanExpired)
-		return
+	conf := config.GetConfig()
+	if conf.App.EnableSubscriptions {
+		var userplan models.UserPlan
+		userplan.UserID = userID.(uint)
+		if err := userplan.Find(); err != nil {
+			logger.Log(logger.Fields{
+				Loc:  "/server/connect/:id - Connect()",
+				Code: errors.InternalServerError.Code,
+				Extra: map[string]interface{}{
+					"UserID": userplan.UserID,
+					"Detail": "Could not find user_plan record",
+				},
+				Err: err.Error(),
+			})
+			c.AbortWithStatusJSON(errors.UserPlanNotFound.Status, errors.UserPlanNotFound)
+			return
+		}
+		userPlanExpired := userplan.ExpiryDate.Before(time.Now())
+		if !userplan.Active || userPlanExpired {
+			logger.Log(logger.Fields{
+				Loc:  "/server/connect/:id - Connect()",
+				Code: errors.InternalServerError.Code,
+				Extra: map[string]interface{}{
+					"UserID": userplan.UserID,
+				},
+				Err: errors.UserPlanExpired.Detail,
+			})
+			c.AbortWithStatusJSON(errors.UserPlanExpired.Status, errors.UserPlanExpired)
+			return
+		}
+		var user models.User
+		user.ID = userID.(uint)
+		if err := user.Find(); err != nil {
+			logger.Log(logger.Fields{
+				Loc:  "/user/session/:planid - StripeSession()",
+				Code: errors.UserNotFound.Code,
+				Extra: map[string]interface{}{
+					"UserID": userID,
+					"Detail": errors.UserNotFound.Detail,
+				},
+				Err: err.Error(),
+			})
+			c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

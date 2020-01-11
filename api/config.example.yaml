@@ -5,6 +5,7 @@ App:
   AllowedOrigins:
     - http://localhost/
   EnableCSRF: false
+  EnableSubscriptions: false
 
 DB:
   User: eirevpn_dev

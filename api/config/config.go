@@ -9,11 +9,12 @@ import (
 
 type Config struct {
 	App struct {
-		Port           string   `yaml:"Port"`
-		Domain         string   `yaml:"Domain"`
-		JWTSecret      string   `yaml:"JWTSecret"`
-		AllowedOrigins []string `yaml:"AllowedOrigins"`
-		EnableCSRF     bool     `yaml:"EnableCSRF"`
+		Port                string   `yaml:"Port"`
+		Domain              string   `yaml:"Domain"`
+		JWTSecret           string   `yaml:"JWTSecret"`
+		AllowedOrigins      []string `yaml:"AllowedOrigins"`
+		EnableCSRF          bool     `yaml:"EnableCSRF"`
+		EnableSubscriptions bool     `yaml:"EnableSubscriptions"`
 	} `yaml:"App"`
 
 	DB struct {
