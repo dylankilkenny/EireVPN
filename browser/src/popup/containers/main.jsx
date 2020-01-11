@@ -50,6 +50,7 @@ class Main extends React.Component {
         const { port } = resp.data;
         sendMessage('connect', { ip, port, username, password });
         ext.storage.local.set({ connectedTo: serverid }, () => {
+          this.props.connected();
           this.setState({ connectedTo: serverid });
         });
       })

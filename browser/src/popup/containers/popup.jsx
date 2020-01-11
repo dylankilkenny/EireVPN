@@ -7,6 +7,7 @@ import Settings from '../containers/settings';
 import Main from '../containers/main';
 import AuthService from '../services/authService';
 import ext from '../../utils/ext';
+import sendMessage from '../services/comunicationManager';
 
 const views = {
   login: 0,
@@ -24,6 +25,7 @@ class Popup extends React.Component {
     this.renderSettings = this.renderSettings.bind(this);
     this.renderMain = this.renderMain.bind(this);
     this.checkAuth = this.checkAuth.bind(this);
+    this.connected = this.connected.bind(this);
   }
 
   componentWillMount() {}
@@ -44,7 +46,7 @@ class Popup extends React.Component {
   }
 
   checkAuth() {
-    AuthService.isLoggedIn().then(isLoggedIn => {
+    AuthService.isLoggedIn(this.state.connected).then(isLoggedIn => {
       let renderView;
       if (!isLoggedIn) {
         renderView = views.login;
@@ -64,7 +66,12 @@ class Popup extends React.Component {
 
   logout() {
     AuthService.logout();
-    this.setState({ renderView: 0 });
+    sendMessage('disconnect', {});
+    this.setState({ renderView: 0, connected: false });
+  }
+
+  connected() {
+    this.setState({ connected: true });
   }
 
   renderMain() {
@@ -92,7 +99,7 @@ class Popup extends React.Component {
               renderSettings={this.renderSettings}
             />
             <div>
-              <Main />
+              <Main connected={this.connected} />
             </div>
           </PopupContainer>
         );

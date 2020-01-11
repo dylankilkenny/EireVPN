@@ -27,10 +27,13 @@ export default class AuthService {
     ext.storage.local.set({ csrfToken: '' }, () => {});
   }
 
-  static isLoggedIn() {
-    return ServicesUtil.getCsrfToken().then(
-      token => !!token && !AuthService.isTokenExpired(token)
-    );
+  static isLoggedIn(isConnected) {
+    return ServicesUtil.getCsrfToken().then(token => {
+      if (isConnected) {
+        return true;
+      }
+      return !!token && !AuthService.isTokenExpired(token);
+    });
   }
 
   static isTokenExpired(token) {
