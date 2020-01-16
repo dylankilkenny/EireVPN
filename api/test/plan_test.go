@@ -140,15 +140,6 @@ func TestAllPlansRoute(t *testing.T) {
 		CreateCleanDB()
 	})
 
-	t.Run("No Plans Found", func(t *testing.T) {
-		user := CreateUser()
-		authToken, refreshToken, csrfToken := GetToken(user)
-		want := 200
-		got := makeRequest(t, authToken, refreshToken, csrfToken)
-		assertCorrectStatus(t, want, got)
-		CreateCleanDB()
-	})
-
 	t.Run("Internal Server Error", func(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetToken(user)

@@ -5,7 +5,6 @@ import (
 	"eirevpn/api/logger"
 	"eirevpn/api/router"
 	"flag"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,13 +19,10 @@ func TestMain(m *testing.M) {
 	flag.BoolVar(&logging, "logging", false, "enable logging")
 	flag.Parse()
 
-	config.Init("../config.yaml")
+	config.Init("../config.test.yaml")
 	conf := config.GetConfig()
-	conf.Stripe.IntegrationActive = true
-	conf.App.EnableCSRF = true
 
 	InitDB()
-	fmt.Println(conf)
 	r = router.Init(conf, logging)
 	logger.Init(logging)
 	code := m.Run()

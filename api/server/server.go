@@ -32,7 +32,7 @@ func Server(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data": gin.H{
-			"connection": server,
+			"server": server,
 		},
 	})
 
@@ -285,13 +285,44 @@ func AllServers(c *gin.Context) {
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 	}
 
-	// dont send username and passwords
-	for i, s := range servers {
-		s.Username = ""
-		s.Password = ""
-		s.IP = ""
-		s.Port = 0000
-		servers[i] = s
+	userID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/server/connect/:id - Connect()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	var user models.User
+	user.ID = userID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/user/session/:planid - StripeSession()",
+			Code: errors.UserNotFound.Code,
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": errors.UserNotFound.Detail,
+			},
+			Err: err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	if user.Type != models.UserTypeAdmin {
+		// dont send username and passwords
+		for i, s := range servers {
+			s.Username = ""
+			s.Password = ""
+			s.IP = ""
+			s.Port = 0000
+			servers[i] = s
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

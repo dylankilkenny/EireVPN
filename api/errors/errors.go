@@ -37,11 +37,11 @@ var (
 	UserNotFound                = APIError{400, "USERNOTFND", "User Not Found", "No matching user found for the supplied ID"}
 	WrongPassword               = APIError{401, "WRONGPASS", "Wrong Password", "password is incorrect"}
 	EmailTaken                  = APIError{400, "EMAILTAKEN", "Email Taken", "email already exists"}
-	AuthCookieMissing           = APIError{401, "AUTHCOOKMISS", "Auth Cookie Missing", "Auth Cookie is missing"}
-	RefresCookieMissing         = APIError{401, "REFCOOKMISS", "Refresh Cookie Missing", "Refresh Cookie is missing"}
-	TokenInvalid                = APIError{401, "TOKENINVALID", "Token Invalid", "Authorisation token invalid"}
-	InvalidIdentifier           = APIError{401, "INVIDENTIFIER", "Invlaid identifier", "Invlaid identifier"}
-	CSRFTokenInvalid            = APIError{401, "CSRFTOKEN", "CSRF Token", "CSRF token is invalid"}
+	AuthCookieMissing           = APIError{403, "AUTHCOOKMISS", "Auth Cookie Missing", "Auth Cookie is missing"}
+	RefresCookieMissing         = APIError{403, "REFCOOKMISS", "Refresh Cookie Missing", "Refresh Cookie is missing"}
+	TokenInvalid                = APIError{403, "TOKENINVALID", "Token Invalid", "Authorisation token invalid"}
+	InvalidIdentifier           = APIError{403, "INVIDENTIFIER", "Invlaid identifier", "Invlaid identifier"}
+	CSRFTokenInvalid            = APIError{403, "CSRFTOKEN", "CSRF Token", "CSRF token is invalid"}
 	ProtectedRouted             = APIError{400, "PROTECTROUTE", "Protected Route", "You do not have the correct permissions to access this route."}
 	UserPlanExpired             = APIError{401, "EXPIREDPLAN", "User Plan Expired", "You do not have an active plan."}
 	UserPlanNotFound            = APIError{401, "USERPLANNOTFOUND", "User Plan Not Found", "Users subscription does not exist."}

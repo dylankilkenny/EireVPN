@@ -15,6 +15,7 @@ type Config struct {
 		AllowedOrigins      []string `yaml:"AllowedOrigins"`
 		EnableCSRF          bool     `yaml:"EnableCSRF"`
 		EnableSubscriptions bool     `yaml:"EnableSubscriptions"`
+		EnableAuth          bool     `yaml:"EnableAuth"`
 	} `yaml:"App"`
 
 	DB struct {

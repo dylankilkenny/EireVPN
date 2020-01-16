@@ -5,6 +5,9 @@ browser/temp
 browser/.idea
 browser/.vscode
 
+site/node_modules
+site/.next
+
 api/.vscode
 api/tmp
 api/pgdata

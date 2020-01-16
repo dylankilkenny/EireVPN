@@ -35,17 +35,21 @@ func Init(c config.Config, logging bool) *gin.Engine {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = conf.App.AllowedOrigins
 	corsConfig.AllowCredentials = true
-	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
+	corsConfig.ExposeHeaders = []string{"X-CSRF-Token"}
+	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-Token")
 	router.Use(cors.New(corsConfig))
 
 	public := router.Group("/api")
 	private := router.Group("/api/private")
 	protected := router.Group("/api/protected")
-	private.Use(auth(secretkey, conf.App.Domain, false))
-	protected.Use(auth(secretkey, conf.App.Domain, true))
+	private.Use(auth(secretkey, false))
+	protected.Use(auth(secretkey, true))
 
 	public.POST("/user/signup", user.SignUpUser)
 	public.POST("/user/login", user.LoginUser)
+	protected.GET("/user/:id", user.User)
+	protected.PUT("/user/update/:id", user.UpdateUser)
+	protected.GET("/users", user.AllUsers)
 	public.POST("/user/webhook", user.Webhook)
 	private.GET("/user/updatepayment", user.StripeUpdatePaymentSession)
 	private.GET("/user/session/:planid", user.StripeSession)
@@ -68,164 +72,165 @@ func Init(c config.Config, logging bool) *gin.Engine {
 	return router
 }
 
-func auth(secret, domain string, protected bool) gin.HandlerFunc {
+func auth(secret string, protected bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if conf.App.EnableAuth {
+			var usersession models.UserAppSession
 
-		var usersession models.UserAppSession
-
-		// Fetch authentification token
-		authToken, err := c.Request.Cookie("authToken")
-		if err != nil {
-			logger.Log(logger.Fields{
-				Loc:  "router.go - auth()",
-				Code: errors.AuthCookieMissing.Code,
-				Err:  err.Error(),
-			})
-			c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
-			return
-		}
-
-		// Fetch refresh token
-		refreshToken, err := c.Request.Cookie("refreshToken")
-		if err != nil {
-			logger.Log(logger.Fields{
-				Loc:  "router.go - auth()",
-				Code: errors.RefresCookieMissing.Code,
-				Err:  err.Error(),
-			})
-			c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
-			return
-		}
-		// Check auth token is valid
-		authClaims, err := jwt.ValidateToken(authToken.Value)
-		if err != nil {
-
-			// If auth token is invalid check refresh token is valid
-			refreshClaims, err := jwt.ValidateToken(refreshToken.Value)
+			// Fetch authentification token
+			authToken, err := c.Request.Cookie("authToken")
 			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
-					Code: errors.TokenInvalid.Code,
+					Code: errors.AuthCookieMissing.Code,
 					Err:  err.Error(),
 				})
-				c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
+				c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
 				return
 			}
 
-			usersession = models.UserAppSession{
-				UserID:     refreshClaims.UserID,
-				Identifier: refreshClaims.SessionIdentifier,
-			}
-
-			if err := usersession.Find(); err != nil {
+			// Fetch refresh token
+			refreshToken, err := c.Request.Cookie("refreshToken")
+			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
-					Code: errors.InvalidIdentifier.Code,
+					Code: errors.RefresCookieMissing.Code,
 					Err:  err.Error(),
 				})
-				c.SetCookie("refreshToken", "", -1, "/", "localhost", true, false)
-				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
+				c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
 				return
 			}
-		}
+			// Check auth token is valid
+			authClaims, err := jwt.ValidateToken(authToken.Value)
+			if err != nil {
 
-		// If auth token or refresh token is valid check if crsf token matches the one supplied
-		// in the header
-		if conf.App.EnableCSRF {
-			if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
-				var reason string
-				if authClaims.CSRF == "" {
-					reason = "CSRF token is missing from claims"
+				// If auth token is invalid check refresh token is valid
+				refreshClaims, err := jwt.ValidateToken(refreshToken.Value)
+				if err != nil {
+					logger.Log(logger.Fields{
+						Loc:  "router.go - auth()",
+						Code: errors.TokenInvalid.Code,
+						Err:  err.Error(),
+					})
+					c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
+					return
 				}
-				if c.GetHeader("X-CSRF-Token") == "" {
-					reason = "CSRF token is missing from header"
+
+				usersession = models.UserAppSession{
+					UserID:     refreshClaims.UserID,
+					Identifier: refreshClaims.SessionIdentifier,
 				}
-				if authClaims == nil {
-					reason = "Auth Claims is nil"
+
+				if err := usersession.Find(); err != nil {
+					logger.Log(logger.Fields{
+						Loc:  "router.go - auth()",
+						Code: errors.InvalidIdentifier.Code,
+						Err:  err.Error(),
+					})
+					c.SetCookie("refreshToken", "", -1, "/", "localhost", true, false)
+					c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
+					return
 				}
-				logger.Log(logger.Fields{
-					Loc:   "router.go - auth()",
-					Code:  errors.CSRFTokenInvalid.Code,
-					Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
-					Err:   reason,
-				})
-				c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
-				return
 			}
-		}
 
-		if usersession == (models.UserAppSession{}) {
-			usersession = models.UserAppSession{
-				UserID: authClaims.UserID,
+			// If auth token or refresh token is valid check if crsf token matches the one supplied
+			// in the header
+			if conf.App.EnableCSRF {
+				if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
+					var reason string
+					if authClaims.CSRF == "" {
+						reason = "CSRF token is missing from claims"
+					}
+					if c.GetHeader("X-CSRF-Token") == "" {
+						reason = "CSRF token is missing from header"
+					}
+					if authClaims == nil {
+						reason = "Auth Claims is nil"
+					}
+					logger.Log(logger.Fields{
+						Loc:   "router.go - auth()",
+						Code:  errors.CSRFTokenInvalid.Code,
+						Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
+						Err:   reason,
+					})
+					c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
+					return
+				}
 			}
-		}
 
-		if protected {
-			var user models.User
-			user.ID = usersession.UserID
-			if err := user.Find(); err != nil {
+			if usersession == (models.UserAppSession{}) {
+				usersession = models.UserAppSession{
+					UserID: authClaims.UserID,
+				}
+			}
+
+			if protected {
+				var user models.User
+				user.ID = usersession.UserID
+				if err := user.Find(); err != nil {
+					logger.Log(logger.Fields{
+						Loc: "router.go - auth()",
+						Extra: map[string]interface{}{
+							"UserID": usersession.UserID,
+							"Detail": "User Not found when checking user type",
+						},
+						Err: err.Error(),
+					})
+					c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+					return
+				}
+
+				if user.Type != models.UserTypeAdmin {
+					logger.Log(logger.Fields{
+						Loc:  "router.go - auth()",
+						Code: errors.ProtectedRouted.Code,
+						Extra: map[string]interface{}{
+							"UserID": usersession.UserID,
+						},
+						Err: "User does not have permission to access route",
+					})
+					c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
+					return
+				}
+			}
+
+			// create a new user session
+			var newUserSession models.UserAppSession
+			if err := newUserSession.New(usersession.UserID); err != nil {
 				logger.Log(logger.Fields{
-					Loc: "router.go - auth()",
-					Extra: map[string]interface{}{
-						"UserID": usersession.UserID,
-						"Detail": "User Not found when checking user type",
-					},
-					Err: err.Error(),
+					Loc:   "/login - LoginUser() - Create session",
+					Code:  errors.InternalServerError.Code,
+					Extra: map[string]interface{}{"UserID": usersession.UserID},
+					Err:   err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 				return
 			}
 
-			if user.Type != models.UserTypeAdmin {
+			// If all auth checks pass create fresh tokens
+			newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(newUserSession)
+			if err != nil {
 				logger.Log(logger.Fields{
-					Loc:  "router.go - auth()",
-					Code: errors.ProtectedRouted.Code,
-					Extra: map[string]interface{}{
-						"UserID": usersession.UserID,
-					},
-					Err: "User does not have permission to access route",
+					Loc:   "router.go - auth()",
+					Code:  errors.InternalServerError.Code,
+					Extra: map[string]interface{}{"UserID": newUserSession.UserID},
+					Err:   err.Error(),
 				})
-				c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
+				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
 				return
 			}
+
+			// Add user id to the context for use within the routes
+			c.Set("UserID", newUserSession.UserID)
+
+			// TODO: Change the domain name and add correct maxAge time
+			authCookieMaxAge := 15 * 60 // 15 minutes in seconds
+			c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, false)
+
+			// TODO: Change the domain name and add correct maxAge time
+			refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
+			c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, false)
+			c.Header("X-CSRF-Token", newCsrfToken)
 		}
-
-		// create a new user session
-		var newUserSession models.UserAppSession
-		if err := newUserSession.New(usersession.UserID); err != nil {
-			logger.Log(logger.Fields{
-				Loc:   "/login - LoginUser() - Create session",
-				Code:  errors.InternalServerError.Code,
-				Extra: map[string]interface{}{"UserID": usersession.UserID},
-				Err:   err.Error(),
-			})
-			c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-			return
-		}
-
-		// If all auth checks pass create fresh tokens
-		newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(newUserSession)
-		if err != nil {
-			logger.Log(logger.Fields{
-				Loc:   "router.go - auth()",
-				Code:  errors.InternalServerError.Code,
-				Extra: map[string]interface{}{"UserID": newUserSession.UserID},
-				Err:   err.Error(),
-			})
-			c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-			return
-		}
-
-		// Add user id to the context for use within the routes
-		c.Set("UserID", newUserSession.UserID)
-
-		// TODO: Change the domain name and add correct maxAge time
-		authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-		c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", domain, false, false)
-
-		// TODO: Change the domain name and add correct maxAge time
-		refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
-		c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", domain, false, false)
-		c.Header("X-CSRF-Token", newCsrfToken)
 	}
 }

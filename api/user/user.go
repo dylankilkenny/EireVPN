@@ -18,6 +18,89 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User fetches a user by ID
+func User(c *gin.Context) {
+	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var user models.User
+	user.ID = uint(userID)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/:id - User()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	user.Password = ""
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"errors": make([]string, 0),
+		"data": gin.H{
+			"user": user,
+		},
+	})
+
+}
+
+// UpdateUser updates a user
+func UpdateUser(c *gin.Context) {
+	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var user models.User
+	user.ID = uint(userID)
+
+	type UserUpdates struct {
+		FirstName string `json:"firstname" binding:"required"`
+		LastName  string `json:"lastname" binding:"required"`
+		Email     string `json:"email" binding:"required"`
+	}
+	userUpdates := UserUpdates{}
+
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	if err := c.BindJSON(&userUpdates); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Code:  errors.InvalidForm.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
+		return
+	}
+
+	user.FirstName = userUpdates.FirstName
+	user.LastName = userUpdates.LastName
+	user.Email = userUpdates.Email
+	if err := user.Save(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"errors": make([]string, 0),
+		"data":   make([]string, 0),
+	})
+}
+
 // LoginUser verifies a users details are correct, returning a jwt token to the user
 func LoginUser(c *gin.Context) {
 	var userLogin models.User
@@ -90,7 +173,7 @@ func LoginUser(c *gin.Context) {
 	// TODO: Change the domain name and add correct maxAge time
 	refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
 	c.SetCookie("refreshToken", refreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, true)
-
+	fmt.Println(csrfToken)
 	c.Header("X-CSRF-Token", csrfToken)
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
@@ -141,6 +224,33 @@ func SignUpUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data":   make([]string, 0),
+	})
+}
+
+// AllUsers returns an array of all user
+func AllUsers(c *gin.Context) {
+	var users models.AllUsers
+
+	if err := users.FindAll(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/plans - AllUsers()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	// dont send passwords
+	for i, u := range users {
+		u.Password = ""
+		users[i] = u
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"data": gin.H{
+			"users": users,
+		},
 	})
 }
 

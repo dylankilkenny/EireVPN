@@ -1,0 +1,23 @@
+App:
+  Port: 3001
+  Domain: localhost
+  JWTSecret: secretkey1995
+  AllowedOrigins:
+    - http://localhost:3001/
+  EnableCSRF: true
+  EnableSubscriptions: true
+  EnableAuth: true
+
+DB:
+  User: eirevpn_test
+  Password: eirevpn_test
+  Database: eirevpn_test
+  Host: localhost
+  Port: 5431
+
+Stripe:
+  SecretKey: sk_test_kLGFCqgqvp8m4xItjb7tCutQ00aVWpUjWt
+  EndpointSecret: whsec_NiHocSXUplUAkCIk2R4uai3gMXHYILPs
+  IntegrationActive: false
+  SuccessUrl: https://eirevpn.ie/success
+  ErrorUrl: https://eirevpn.ie/error

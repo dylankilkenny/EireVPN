@@ -11,6 +11,7 @@ import (
 )
 
 type UserType string
+type AllUsers []User
 
 var (
 	UserTypeNormal UserType = "normal"
@@ -51,6 +52,13 @@ func (u *User) Save() error {
 
 func (u *User) CreateStripeCustomer() (*stripego.Customer, error) {
 	return stripe.CreateCustomer(u.Email, u.FirstName, u.LastName, u.ID)
+}
+
+func (au *AllUsers) FindAll() error {
+	if err := db().Find(&au).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // BeforeCreate sets the CreatedAt column to the current time

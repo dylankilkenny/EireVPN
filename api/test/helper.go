@@ -54,11 +54,6 @@ func assertCorrectCode(t *testing.T, want, got string) {
 func InitDB() {
 
 	conf := config.GetConfig()
-	conf.DB.Port = 5431
-	conf.DB.User = "eirevpn_test"
-	conf.DB.Password = "eirevpn_test"
-	conf.DB.Host = "localhost"
-	conf.DB.Database = "eirevpn_test"
 
 	db.Init(conf, false, models.Get())
 	dbInstance = db.GetDB()
