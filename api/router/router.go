@@ -35,8 +35,8 @@ func Init(c config.Config, logging bool) *gin.Engine {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = conf.App.AllowedOrigins
 	corsConfig.AllowCredentials = true
-	corsConfig.ExposeHeaders = []string{"X-CSRF-Token"}
-	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-Token")
+	corsConfig.ExposeHeaders = []string{"X-CSRF-Token", "X-Auth-Token"}
+	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-Token", "X-Auth-Token")
 	router.Use(cors.New(corsConfig))
 
 	public := router.Group("/api")
@@ -78,12 +78,11 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			var usersession models.UserAppSession
 
 			// Fetch authentification token
-			authToken, err := c.Request.Cookie("authToken")
-			if err != nil {
+			authToken := c.GetHeader("X-Auth-Token")
+			if authToken == "" {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
 					Code: errors.AuthCookieMissing.Code,
-					Err:  err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
 				return
@@ -101,9 +100,9 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 				return
 			}
 			// Check auth token is valid
-			authClaims, err := jwt.ValidateToken(authToken.Value)
+			authClaims, err := jwt.ValidateToken(authToken)
 			if err != nil {
-
+				fmt.Println("auth invalid checking refresh")
 				// If auth token is invalid check refresh token is valid
 				refreshClaims, err := jwt.ValidateToken(refreshToken.Value)
 				if err != nil {
@@ -224,8 +223,9 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			c.Set("UserID", newUserSession.UserID)
 
 			// TODO: Change the domain name and add correct maxAge time
-			authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-			c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, false)
+			// authCookieMaxAge := 15 * 60 // 15 minutes in seconds
+			// c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, false)
+			c.Header("X-Auth-Token", newAuthToken)
 
 			// TODO: Change the domain name and add correct maxAge time
 			refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds

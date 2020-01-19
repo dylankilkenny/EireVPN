@@ -167,13 +167,12 @@ func LoginUser(c *gin.Context) {
 	conf := config.GetConfig()
 
 	// TODO: Change the domain name and add correct maxAge time
-	authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-	c.SetCookie("authToken", authToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
-
+	// authCookieMaxAge := 1 // 15 minutes in seconds
+	// c.SetCookie("authToken", authToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
+	c.Header("X-Auth-Token", authToken)
 	// TODO: Change the domain name and add correct maxAge time
 	refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
 	c.SetCookie("refreshToken", refreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, true)
-	fmt.Println(csrfToken)
 	c.Header("X-CSRF-Token", csrfToken)
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
