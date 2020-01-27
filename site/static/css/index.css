@@ -1,0 +1,23 @@
+.button-toolbar {
+    width: 100%;
+    height: 3em;
+    margin-bottom: 8px;
+}
+
+.button-toolbar .btn {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.server-create {
+    float: left;
+    width: 80%;
+}
+
+/* .btn-save {
+    float: right
+} */
+
+.table-admin-list {
+    cursor: pointer;
+}
