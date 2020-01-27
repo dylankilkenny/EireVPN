@@ -50,6 +50,13 @@ func (u *User) Save() error {
 	return nil
 }
 
+func (u *User) Delete() error {
+	if err := db().Delete(&u).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (u *User) CreateStripeCustomer() (*stripego.Customer, error) {
 	return stripe.CreateCustomer(u.Email, u.FirstName, u.LastName, u.ID)
 }

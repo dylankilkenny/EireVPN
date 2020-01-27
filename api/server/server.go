@@ -288,7 +288,7 @@ func AllServers(c *gin.Context) {
 	userID, exists := c.Get("UserID")
 	if !exists {
 		logger.Log(logger.Fields{
-			Loc: "/server/connect/:id - Connect()",
+			Loc: "/servers - AllServers()",
 			Extra: map[string]interface{}{
 				"UserID": userID,
 				"Detail": "User ID does not exist in the context",
@@ -302,7 +302,7 @@ func AllServers(c *gin.Context) {
 	user.ID = userID.(uint)
 	if err := user.Find(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:  "/user/session/:planid - StripeSession()",
+			Loc:  "/servers - AllServers()",
 			Code: errors.UserNotFound.Code,
 			Extra: map[string]interface{}{
 				"UserID": userID,

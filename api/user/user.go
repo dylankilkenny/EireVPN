@@ -101,6 +101,60 @@ func UpdateUser(c *gin.Context) {
 	})
 }
 
+// DeleteUser deletes a given user. It will not delete a user fully however,
+// it will just set a DeletedAt datetime on the record
+func DeleteUser(c *gin.Context) {
+	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var user models.User
+	user.ID = uint(userID)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/delete/:id - DeleteUser()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	// If the user has any active plans, find them and delete
+	var userPlan models.UserPlan
+	userPlan.UserID = user.ID
+	if err := userPlan.Find(); err == nil {
+		if err := userPlan.Delete(); err != nil {
+			logger.Log(logger.Fields{
+				Loc:  "/user/delete/:id - DeleteUser()",
+				Code: errors.InternalServerError.Code,
+				Extra: map[string]interface{}{
+					"UserPlanID": userPlan.ID,
+					"Detail":     "Failed to delete user plan",
+				},
+				Err: err.Error(),
+			})
+			c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+			return
+		}
+	}
+
+	if err := user.Delete(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/delete/:id - DeleteUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"errors": make([]string, 0),
+		"data":   make([]string, 0),
+	})
+}
+
 // LoginUser verifies a users details are correct, returning a jwt token to the user
 func LoginUser(c *gin.Context) {
 	var userLogin models.User
@@ -175,6 +229,52 @@ func LoginUser(c *gin.Context) {
 		"status": 200,
 		"errors": make([]string, 0),
 		"data":   gin.H{"firstname": userDb.FirstName},
+	})
+}
+
+// Logout signs a user out and deletes session
+func Logout(c *gin.Context) {
+	conf := config.GetConfig()
+
+	// Fetch auth token
+	authCookie, err := c.Request.Cookie(conf.App.AuthCookieName)
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "user/logout - Logout()",
+			Code: errors.AuthCookieMissing.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithError(403, err)
+		return
+	}
+
+	authClaims, err := jwt.ValidateToken(authCookie.Value)
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "user/logout - Logout()",
+			Code: errors.TokenInvalid.Code,
+			Err:  err.Error(),
+		})
+	}
+
+	usersession := models.UserAppSession{
+		UserID:     authClaims.UserID,
+		Identifier: authClaims.SessionIdentifier,
+	}
+
+	if err := usersession.DeleteAll(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "user/logout - Logout()",
+			Code: errors.UserSessionDelete.Code,
+			Err:  err.Error(),
+		})
+	}
+
+	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"errors": make([]string, 0),
+		"data":   make([]string, 0),
 	})
 }
 

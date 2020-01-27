@@ -20,7 +20,7 @@ type Server struct {
 	BaseModel
 	Country     string     `form:"country" json:"country" binding:"required"`
 	CountryCode string     `form:"country_code" json:"country_code" binding:"required"`
-	Type        ServerType `form:"type" json:"type" binding:"required"`
+	Type        ServerType `form:"type" json:"type"` // binding:"required" removed for time being
 	IP          string     `form:"ip" json:"ip" binding:"required"`
 	Port        int        `form:"port" json:"port" binding:"required"`
 	Username    string     `form:"username" json:"username" binding:"required"`

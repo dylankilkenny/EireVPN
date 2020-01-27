@@ -50,17 +50,20 @@ func Init(logging bool) *gin.Engine {
 	public.POST("/user/login", user.LoginUser)
 	protected.GET("/user/:id", user.User)
 	protected.PUT("/user/update/:id", user.UpdateUser)
+	protected.DELETE("/users/delete/:id", user.DeleteUser)
 	protected.GET("/users", user.AllUsers)
 	public.POST("/user/webhook", user.Webhook)
 	private.GET("/user/updatepayment", user.StripeUpdatePaymentSession)
 	private.GET("/user/session/:planid", user.StripeSession)
 	private.GET("/user/cancel", user.CancelSubscription)
+	public.GET("/user/logout", user.Logout) //public so this router can skip auth middleware
 
 	protected.GET("/plans/:id", plan.Plan)
 	protected.POST("/plans/create", plan.CreatePlan)
 	protected.PUT("/plans/update/:id", plan.UpdatePlan)
 	protected.DELETE("/plans/delete/:id", plan.DeletePlan)
-	public.GET("/plans", plan.AllPlans)
+	protected.GET("/plans", plan.AllPlans)
+	public.GET("/plans", plan.AllPlansPublic)
 
 	protected.GET("/servers/:id", server.Server)
 	protected.POST("/servers/create", server.CreateServer)

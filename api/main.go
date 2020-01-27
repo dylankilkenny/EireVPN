@@ -27,7 +27,7 @@ func main() {
 
 	logger.Init(logging)
 
-	r := router.Init(conf, logging)
+	r := router.Init(logging)
 
-	r.Run(":" + string(conf.App.Port))
+	r.Run(":" + conf.App.Port)
 }

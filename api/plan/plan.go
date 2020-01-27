@@ -158,6 +158,38 @@ func UpdatePlan(c *gin.Context) {
 	})
 }
 
+// AllPlansPublic returns an array of all available plans only
+// containing customer facing data
+func AllPlansPublic(c *gin.Context) {
+	var plans models.AllPlans
+
+	if err := plans.FindAll(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/plans - AllPlans()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	publicPlanData := make([]map[string]interface{}, 0)
+	for _, p := range plans {
+		publicPlanData = append(publicPlanData,
+			map[string]interface{}{
+				"name":     p.Name,
+				"amount":   p.Amount,
+				"interval": p.Interval,
+			})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"data": gin.H{
+			"plans": publicPlanData,
+		},
+	})
+}
+
 // AllPlans returns an array of all available plans
 func AllPlans(c *gin.Context) {
 	var plans models.AllPlans
