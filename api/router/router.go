@@ -6,6 +6,7 @@ import (
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
 	"eirevpn/api/server"
+	"eirevpn/api/settings"
 	"eirevpn/api/util/jwt"
 	"io/ioutil"
 
@@ -16,12 +17,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var conf config.Config
-
 const secretkey = "verysecretkey1995"
 
-func Init(c config.Config, logging bool) *gin.Engine {
-	conf = c
+func Init(logging bool) *gin.Engine {
+
+	conf := config.GetConfig()
+
 	var router *gin.Engine
 	if logging {
 		router = gin.Default()
@@ -68,12 +69,16 @@ func Init(c config.Config, logging bool) *gin.Engine {
 	private.GET("/servers/connect/:id", server.Connect)
 	private.GET("/servers", server.AllServers)
 
+	protected.GET("/settings", settings.Settings)
+	protected.PUT("/settings/update", settings.UpdateSettings)
+
 	router.Static("/assets", "./assets")
 	return router
 }
 
 func auth(secret string, protected bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		conf := config.GetConfig()
 		if conf.App.EnableAuth {
 			var usersession models.UserAppSession
 

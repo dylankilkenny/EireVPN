@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var configFilename string
+
 type Config struct {
 	App struct {
 		Port                string   `yaml:"Port"`
@@ -16,6 +18,9 @@ type Config struct {
 		EnableCSRF          bool     `yaml:"EnableCSRF"`
 		EnableSubscriptions bool     `yaml:"EnableSubscriptions"`
 		EnableAuth          bool     `yaml:"EnableAuth"`
+		AuthCookieAge       int      `yaml:"AuthCookieAge"`
+		AuthCookieName      string   `yaml:"AuthCookieName"`
+		AuthTokenExpiry     int      `yaml:"AuthTokenExpiry"`
 	} `yaml:"App"`
 
 	DB struct {
@@ -35,10 +40,13 @@ type Config struct {
 	} `yaml:"Stripe"`
 }
 
-var conf Config
-
 func Init(filename string) {
-	yamlFile, err := ioutil.ReadFile(filename)
+	configFilename = filename
+}
+
+func GetConfig() Config {
+	conf := Config{}
+	yamlFile, err := ioutil.ReadFile(configFilename)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -46,8 +54,17 @@ func Init(filename string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	return conf
 }
 
-func GetConfig() Config {
-	return conf
+func (c *Config) SaveConfig() error {
+	newConf, err := yaml.Marshal(&c)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("config.yaml", newConf, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }

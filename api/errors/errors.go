@@ -45,6 +45,7 @@ var (
 	ProtectedRouted             = APIError{400, "PROTECTROUTE", "Protected Route", "You do not have the correct permissions to access this route."}
 	UserPlanExpired             = APIError{401, "EXPIREDPLAN", "User Plan Expired", "You do not have an active plan."}
 	UserPlanNotFound            = APIError{401, "USERPLANNOTFOUND", "User Plan Not Found", "Users subscription does not exist."}
+	SettingsUpdateFailed        = APIError{401, "SETTINGSUPFAILED", "Settings Update Failed", "Failed to update the systems settings."}
 )
 
 func (err *APIError) Error() string {
