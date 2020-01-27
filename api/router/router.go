@@ -82,79 +82,64 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 		if conf.App.EnableAuth {
 			var usersession models.UserAppSession
 
-			// Fetch authentification token
-			authToken := c.GetHeader("X-Auth-Token")
-			if authToken == "" {
+			// Fetch refresh token
+			authToken, err := c.Request.Cookie(conf.App.AuthCookieName)
+			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
 					Code: errors.AuthCookieMissing.Code,
+					Err:  err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
 				return
 			}
 
-			// Fetch refresh token
-			refreshToken, err := c.Request.Cookie("refreshToken")
+			// Check auth token is valid
+			authClaims, err := jwt.ValidateToken(authToken.Value)
 			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
-					Code: errors.RefresCookieMissing.Code,
+					Code: errors.TokenInvalid.Code,
 					Err:  err.Error(),
 				})
-				c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
+				c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+				c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
 				return
 			}
-			// Check auth token is valid
-			authClaims, err := jwt.ValidateToken(authToken)
-			if err != nil {
-				fmt.Println("auth invalid checking refresh")
-				// If auth token is invalid check refresh token is valid
-				refreshClaims, err := jwt.ValidateToken(refreshToken.Value)
-				if err != nil {
-					logger.Log(logger.Fields{
-						Loc:  "router.go - auth()",
-						Code: errors.TokenInvalid.Code,
-						Err:  err.Error(),
-					})
-					c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
-					return
-				}
 
-				usersession = models.UserAppSession{
-					UserID:     refreshClaims.UserID,
-					Identifier: refreshClaims.SessionIdentifier,
-				}
-
-				if err := usersession.Find(); err != nil {
-					logger.Log(logger.Fields{
-						Loc:  "router.go - auth()",
-						Code: errors.InvalidIdentifier.Code,
-						Err:  err.Error(),
-					})
-					c.SetCookie("refreshToken", "", -1, "/", "localhost", true, false)
-					c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
-					return
-				}
+			usersession = models.UserAppSession{
+				UserID:     authClaims.UserID,
+				Identifier: authClaims.SessionIdentifier,
 			}
 
-			// If auth token or refresh token is valid check if crsf token matches the one supplied
-			// in the header
+			if err := usersession.Find(); err != nil {
+				logger.Log(logger.Fields{
+					Loc:  "router.go - auth()",
+					Code: errors.InvalidIdentifier.Code,
+					Err:  err.Error(),
+				})
+				c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
+				return
+			}
+
+			// Check CSRF token
 			if conf.App.EnableCSRF {
-				if authClaims == nil || authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
+				if authClaims.CSRF != c.GetHeader("X-CSRF-Token") {
 					var reason string
-					if authClaims.CSRF == "" {
-						reason = "CSRF token is missing from claims"
-					}
+					authCSRF := ""
 					if c.GetHeader("X-CSRF-Token") == "" {
 						reason = "CSRF token is missing from header"
 					}
-					if authClaims == nil {
-						reason = "Auth Claims is nil"
+					if authClaims.CSRF == "" {
+						reason = "CSRF token is missing from auth claims"
+					} else {
+						authCSRF = authClaims.CSRF
 					}
 					logger.Log(logger.Fields{
 						Loc:   "router.go - auth()",
 						Code:  errors.CSRFTokenInvalid.Code,
-						Extra: map[string]interface{}{"auth-CSRF": authClaims.CSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
+						Extra: map[string]interface{}{"auth-CSRF": authCSRF, "head-CSRF": c.GetHeader("X-CSRF-Token")},
 						Err:   reason,
 					})
 					c.AbortWithStatusJSON(errors.CSRFTokenInvalid.Status, errors.CSRFTokenInvalid)
@@ -162,20 +147,14 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 				}
 			}
 
-			if usersession == (models.UserAppSession{}) {
-				usersession = models.UserAppSession{
-					UserID: authClaims.UserID,
-				}
-			}
-
 			if protected {
 				var user models.User
-				user.ID = usersession.UserID
+				user.ID = authClaims.UserID
 				if err := user.Find(); err != nil {
 					logger.Log(logger.Fields{
 						Loc: "router.go - auth()",
 						Extra: map[string]interface{}{
-							"UserID": usersession.UserID,
+							"UserID": authClaims.UserID,
 							"Detail": "User Not found when checking user type",
 						},
 						Err: err.Error(),
@@ -189,7 +168,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 						Loc:  "router.go - auth()",
 						Code: errors.ProtectedRouted.Code,
 						Extra: map[string]interface{}{
-							"UserID": usersession.UserID,
+							"UserID": authClaims.UserID,
 						},
 						Err: "User does not have permission to access route",
 					})
@@ -200,11 +179,11 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 
 			// create a new user session
 			var newUserSession models.UserAppSession
-			if err := newUserSession.New(usersession.UserID); err != nil {
+			if err := newUserSession.New(authClaims.UserID); err != nil {
 				logger.Log(logger.Fields{
 					Loc:   "/login - LoginUser() - Create session",
 					Code:  errors.InternalServerError.Code,
-					Extra: map[string]interface{}{"UserID": usersession.UserID},
+					Extra: map[string]interface{}{"UserID": authClaims.UserID},
 					Err:   err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
@@ -212,12 +191,12 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			}
 
 			// If all auth checks pass create fresh tokens
-			newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(newUserSession)
+			newAuthToken, newCsrfToken, err := jwt.Tokens(newUserSession)
 			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:   "router.go - auth()",
 					Code:  errors.InternalServerError.Code,
-					Extra: map[string]interface{}{"UserID": newUserSession.UserID},
+					Extra: map[string]interface{}{"UserID": authClaims.UserID},
 					Err:   err.Error(),
 				})
 				c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
@@ -228,13 +207,8 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			c.Set("UserID", newUserSession.UserID)
 
 			// TODO: Change the domain name and add correct maxAge time
-			// authCookieMaxAge := 15 * 60 // 15 minutes in seconds
-			// c.SetCookie("authToken", newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, false)
-			c.Header("X-Auth-Token", newAuthToken)
-
-			// TODO: Change the domain name and add correct maxAge time
-			refreshCookieMaxAge := 24 * 60 * 60 // 72 hours in seconds
-			c.SetCookie("refreshToken", newRefreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, false)
+			authCookieMaxAge := 24 * 60 * conf.App.AuthCookieAge
+			c.SetCookie(conf.App.AuthCookieName, newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
 			c.Header("X-CSRF-Token", newCsrfToken)
 		}
 	}

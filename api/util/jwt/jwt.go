@@ -16,50 +16,39 @@ type JWTClaims struct {
 	jwt_lib.StandardClaims
 }
 
-// Tokens creates a jwt token from the user ID. This token will
-// expire in 1 hour
-func Tokens(usersession models.UserAppSession) (string, string, string, error) {
+// Tokens creates a jwt token from the user ID
+func Tokens(usersession models.UserAppSession) (string, string, error) {
 	conf := config.GetConfig()
+	tokenExpiry := time.Hour * time.Duration(conf.App.AuthTokenExpiry)
 
 	// Set claims
-	csrfExpiry := jwt_lib.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
-	}
 	csrfTokenClaims := JWTClaims{
-		StandardClaims: csrfExpiry,
+		StandardClaims: jwt_lib.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenExpiry).Unix(),
+		},
 	}
 	// Create csrf token
 	csrfToken := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), csrfTokenClaims)
 	csrfTokenString, err := csrfToken.SignedString([]byte(conf.App.JWTSecret))
 
-	authExpiry := jwt_lib.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
-	}
 	authTokenClaims := JWTClaims{
-		UserID:         usersession.UserID,
-		CSRF:           csrfTokenString,
-		StandardClaims: authExpiry,
-	}
-	refreshExpiry := jwt_lib.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-	}
-	refreshTokenClaims := JWTClaims{
 		UserID:            usersession.UserID,
+		CSRF:              csrfTokenString,
 		SessionIdentifier: usersession.Identifier,
-		StandardClaims:    refreshExpiry,
+		StandardClaims: jwt_lib.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenExpiry).Unix(),
+		},
 	}
-	// Create auth token
-	authToken := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), authTokenClaims)
 	// Create refresh token
-	refreshToken := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), refreshTokenClaims)
-
+	authToken := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), authTokenClaims)
 	// Sign and get the complete encoded token as a string
 	authTokenString, err := authToken.SignedString([]byte(conf.App.JWTSecret))
-	refreshTokenString, err := refreshToken.SignedString([]byte(conf.App.JWTSecret))
+
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
-	return authTokenString, refreshTokenString, csrfTokenString, nil
+
+	return authTokenString, csrfTokenString, nil
 }
 
 // PasswordResetToken creates a one time us jwt token from the users old password
@@ -90,11 +79,11 @@ func ValidateToken(refreshToken string) (*JWTClaims, error) {
 		}
 		return []byte(conf.App.JWTSecret), nil
 	})
-
-	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
+	claims, ok := token.Claims.(*JWTClaims)
+	if ok && token.Valid {
 		return claims, nil
 	}
-	return nil, err
+	return claims, err
 }
 
 // ValidateString Validate token string
