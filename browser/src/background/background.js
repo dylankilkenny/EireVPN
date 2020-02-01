@@ -70,17 +70,12 @@ ext.runtime.onMessage.addListener(request => {
   }
 });
 
-ext.webRequest.onBeforeSendHeaders.addListener(
-  rewriteUserAgentHeader,
-  { urls: ['<all_urls>'] },
-  ['blocking', 'requestHeaders']
-);
+ext.webRequest.onBeforeSendHeaders.addListener(rewriteUserAgentHeader, { urls: ['<all_urls>'] }, [
+  'blocking',
+  'requestHeaders'
+]);
 
-ext.webRequest.onAuthRequired.addListener(
-  provideAuth,
-  { urls: ['<all_urls>'] },
-  ['blocking']
-);
+ext.webRequest.onAuthRequired.addListener(provideAuth, { urls: ['<all_urls>'] }, ['blocking']);
 
 ext.webRequest.onCompleted.addListener(completed, { urls: ['<all_urls>'] });
 

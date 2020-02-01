@@ -1,123 +1,130 @@
 import React from 'react';
 import Login from './login';
+import Main from './main';
+import Settings from './settings';
+import Connect from './connect';
 import Header from '../components/header';
 import LargeAlert from '../components/largeAlert';
 import PopupContainer from '../components/container';
-import Settings from '../containers/settings';
-import Main from '../containers/main';
 import AuthService from '../services/authService';
 import ext from '../../utils/ext';
 import sendMessage from '../services/comunicationManager';
+import storage from '../../utils/storage';
 
 const views = {
   login: 0,
   main: 1,
-  settings: 2,
-  incognito: 3
+  connect: 2,
+  settings: 3,
+  incognito: 4
 };
 
 class Popup extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-    this.authorise = this.authorise.bind(this);
-    this.logout = this.logout.bind(this);
-    this.renderSettings = this.renderSettings.bind(this);
-    this.renderMain = this.renderMain.bind(this);
-    this.checkAuth = this.checkAuth.bind(this);
-    this.connected = this.connected.bind(this);
-  }
+  state = {
+    renderView: views.login
+  };
 
-  componentWillMount() {}
-
-  componentDidMount() {
+  async componentDidMount() {
     const isFirefox = typeof InstallTrigger !== 'undefined';
     if (isFirefox) {
-      ext.extension.isAllowedIncognitoAccess().then(allowed => {
-        if (allowed) {
-          this.checkAuth();
-        } else {
-          this.setState({ renderView: views.incognito });
-        }
-      });
-    } else {
-      this.checkAuth();
-    }
-  }
-
-  checkAuth() {
-    AuthService.isLoggedIn(this.state.connected).then(isLoggedIn => {
-      let renderView;
-      if (!isLoggedIn) {
-        renderView = views.login;
+      const allowed = ext.extension.isAllowedIncognitoAccess();
+      if (!allowed) {
+        this.renderIcognito();
       } else {
-        renderView = views.main;
+        this.checkUserStatus();
       }
-      this.setState({ renderView });
-    });
-  }
-
-  authorise(isLoggedIn) {
-    if (isLoggedIn) {
-      const renderView = views.main;
-      this.setState({ renderView });
+    } else {
+      this.checkUserStatus();
     }
   }
 
-  logout() {
+  checkUserStatus = async () => {
+    let renderView = views.login;
+    const loggedIn = await AuthService.isLoggedIn();
+    if (loggedIn) {
+      renderView = views.main;
+    }
+    const connected = await storage.get('connected');
+    let server;
+    if (loggedIn && !!connected) {
+      server = await storage.get('server');
+      renderView = views.connect;
+    }
+    this.setState({ renderView, server });
+  };
+
+  logout = () => {
     AuthService.logout();
     sendMessage('disconnect', {});
-    this.setState({ renderView: 0, connected: false });
-  }
+    this.setState({ renderView: views.login });
+  };
 
-  connected() {
-    this.setState({ connected: true });
-  }
+  renderMain = () => {
+    this.setState({ renderView: views.main });
+  };
 
-  renderMain() {
-    this.setState({ renderView: 1 });
-  }
+  renderSettings = () => {
+    this.setState({ renderView: views.settings });
+  };
 
-  renderSettings() {
-    this.setState({ renderView: 2 });
-  }
+  renderConnect = server => {
+    this.setState({ renderView: views.connect, server });
+  };
+
+  renderLogin = () => {
+    this.setState({ renderView: views.login });
+  };
+
+  renderIcognito = () => {
+    this.setState({ renderView: views.incognito });
+  };
 
   render() {
     switch (this.state.renderView) {
-      case 0:
+      case views.login:
         return (
           <PopupContainer>
             <Header view={this.state.renderView} />
-            <Login authorise={this.authorise} />
+            <Login renderMain={this.renderMain} />
           </PopupContainer>
         );
-      case 1:
+      case views.main:
         return (
           <PopupContainer>
-            <Header
-              view={this.state.renderView}
-              renderSettings={this.renderSettings}
-            />
+            <Header view={this.state.renderView} renderSettings={this.renderSettings} />
             <div>
-              <Main connected={this.connected} />
+              <Main renderLogin={this.renderLogin} renderConnect={this.renderConnect} />
             </div>
           </PopupContainer>
         );
-      case 2:
+      case views.connect:
+        return (
+          <PopupContainer>
+            <Header view={this.state.renderView} renderSettings={this.renderSettings} />
+            <Connect
+              renderMain={this.renderMain}
+              renderLogin={this.renderLogin}
+              server={this.state.server}
+            />
+          </PopupContainer>
+        );
+      case views.settings:
         return (
           <PopupContainer>
             <Header view={this.state.renderView} renderMain={this.renderMain} />
-            <Settings renderMain={this.renderMain} logout={this.logout} />
+            <Settings logout={this.logout} />
           </PopupContainer>
         );
-      case 3:
+      case views.incognito:
         return (
           <PopupContainer>
             <Header view={this.state.renderView} renderMain={this.renderMain} />
             <LargeAlert
               variant="warning"
               heading="Private Browsing Disabled"
-              body="To use this extension private browsing is required. To enable private browsing right click on this extension and choose manage extension. You will see an option 'Run in Private Windows', click allow."
+              body={```To use this extension private browsing is required. 
+              To enable private browsing right click on this extension and choose 
+              manage extension. You will see an option "Run in Private Windows", click allow.```}
             />
           </PopupContainer>
         );
@@ -131,16 +138,6 @@ class Popup extends React.Component {
           </div>
         );
     }
-    // if (!this.state.loggedIn) {
-    // }
-    // return (
-    //   <PopupContainer>
-    //     <Header settings={this.renderSettings} />
-    //     <Button onClick={this.logout} variant="primary">
-    //       logout
-    //     </Button>
-    //   </PopupContainer>
-    // );
   }
 }
 export default Popup;

@@ -21,7 +21,8 @@ const generalConfig = {
         exclude: /node_modules/,
         test: /\.(js|jsx)$/,
         query: {
-          presets: ['@babel/preset-env', '@babel/preset-react']
+          presets: ['@babel/preset-env', '@babel/preset-react'],
+          plugins: ['@babel/plugin-proposal-class-properties']
         },
         resolve: {
           extensions: ['.js', '.jsx']
@@ -33,7 +34,7 @@ const generalConfig = {
         use: ['eslint-loader']
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss|css)$/,
         use: [
           {
             loader: 'style-loader'
@@ -61,7 +62,7 @@ module.exports = [
       ...getHTMLPlugins('chrome', config.tempDirectory, config.chromePath),
       ...getCopyPlugins('chrome', config.tempDirectory, config.chromePath),
       getZipPlugin('chrome', config.distDirectory),
-      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie/'))
+      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie'))
     ]
   },
   {
@@ -84,13 +85,9 @@ module.exports = [
       new CleanWebpackPlugin(['dist', 'temp']),
       new UglifyJsPlugin(),
       ...getHTMLPlugins('firefox', config.tempDirectory, config.firefoxPath),
-      ...getFirefoxCopyPlugins(
-        'firefox',
-        config.tempDirectory,
-        config.firefoxPath
-      ),
+      ...getFirefoxCopyPlugins('firefox', config.tempDirectory, config.firefoxPath),
       getZipPlugin('firefox', config.distDirectory),
-      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie/'))
+      ...getDefinePlugin(JSON.stringify('http://eirevpn.ie'))
     ]
   }
 ];

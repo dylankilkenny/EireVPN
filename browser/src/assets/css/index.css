@@ -1,0 +1,242 @@
+body {
+    background-color: white;
+}
+
+.branding {
+    font-family: 'Fredoka One', cursive;
+    color: #f9bc60;
+    letter-spacing: 0.06em;
+    margin-left: 13px;
+}
+
+.login {
+    margin-right: 1px;
+    margin-left: 1px;
+    margin-top: 25px
+}
+
+.popup {
+    height: 400px;
+    width: 300px;
+}
+
+
+.label {
+    color: black;
+}
+
+.btn-custom {
+    background-color: #e16162;
+    border-color: #e16162;
+    color: #fffffe;
+}
+
+.main-container {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.spinner-div {
+    height: 100%;
+    margin: auto;
+    width: 10%;
+    padding-top: 60px;
+}
+
+.loading-spinner {
+    color: #abd1c6 !important;
+}
+
+.servers-container {
+    height: 335px;
+    overflow-y: scroll;
+    padding: 4px
+}
+
+
+.server-row {
+    border: 1px solid #abd1c6;
+    background-color: white;
+    margin-top: 10px;
+    margin-right: 14px;
+    margin-left: 13px;
+    margin-bottom: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    padding: 5px;
+    padding-left: 13px;
+    box-shadow: 3px 4px 2px #abd1c6;
+    cursor: pointer;
+}
+
+.server-row:hover {
+    border: 1px solid #e16162;
+    box-shadow: 3px 4px 2px #e16162;
+}
+
+.server-col {
+    padding: 0px !important;
+    line-height: 31px;
+    font-size: 18px;
+}
+
+.server-col.text {
+    padding-top: 2px !important;
+}
+
+.server-connect-arrow {
+    float: right;
+}
+
+.connect-cont {
+    padding-top: 14px;
+}
+
+.server-cont {
+    border: 1px solid #abd1c6;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    box-shadow: 3px 4px 2px #abd1c6;
+    width: 45%;
+    margin-left: 7px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.server-country-row {
+    padding-left: 25px;
+}
+
+.server-country-col {
+    padding: 5px !important;
+    line-height: 32px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+}
+
+
+.server-status-row {
+    padding-left: 25px;
+}
+
+.server-status-col {
+    padding: 5px !important;
+    line-height: 32px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+}
+
+.status {
+    width: 15px;
+    height: 15px;
+    border-radius: 7.5px;
+    margin-top: 10px;
+}
+
+.status.active {
+    background-color: #009900;
+}
+
+.status.disabled {
+    background-color: #B00000;
+}
+
+.btn-custom-logout {
+    cursor: pointer;
+    margin-top: 20px;
+    padding-left: 9px;
+    padding: 8px;
+    width: 100px;
+    border: 1px solid #abd1c6;
+    background-color: white;
+    color: black;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    box-shadow: 3px 4px 2px #abd1c6;
+}
+
+.server-cont-ip {
+    border: 1px solid #abd1c6;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    box-shadow: 3px 4px 2px #abd1c6;
+    margin-left: 7px;
+    margin-top: 12px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    width: 95%;
+}
+
+.server-ip-row {
+    padding-left: 25px;
+}
+
+.server-ip-col {
+    padding: 5px !important;
+    line-height: 32px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+}
+
+.server-ip-col.ip {
+    margin-top: 2px;
+    margin-left: 17px;
+}
+
+.server-cont-disc {
+    border: 1px solid #abd1c6;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    box-shadow: 3px 4px 2px #abd1c6;
+    margin-left: 7px;
+    margin-top: 12px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    width: 95%;
+}
+
+.server-disc-row {
+    padding-left: 25px;
+}
+
+.server-disc-col {
+    padding: 5px !important;
+    line-height: 32px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+
+}
+
+.server-disc-col.disc {
+    margin-top: 1px;
+    padding-left: 10px !important;
+}
+
+.server-disc-col.shield {
+    padding-top: 8px !important;
+}
+
+.connecting-spinner {
+    color: #abd1c6 !important;
+    margin-left: 60px;
+}
+
+.server-cont-disc:hover {
+    background-color: #e16162;
+    color: white;
+    cursor: pointer;
+}

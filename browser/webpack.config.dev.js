@@ -18,8 +18,9 @@ const generalConfig = {
         loader: 'babel-loader',
         exclude: /node_modules/,
         test: /\.(js|jsx)$/,
-        query: {
-          presets: ['@babel/preset-env', '@babel/preset-react']
+        options: {
+          presets: ['@babel/preset-env', '@babel/preset-react'],
+          plugins: ['@babel/plugin-proposal-class-properties']
         },
         resolve: {
           extensions: ['.js', '.jsx']
@@ -31,7 +32,7 @@ const generalConfig = {
         use: ['eslint-loader']
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss|css)$/,
         use: [
           {
             loader: 'style-loader'
@@ -56,7 +57,7 @@ module.exports = [
     plugins: [
       ...getHTMLPlugins('chrome', config.devDirectory, config.chromePath),
       ...getCopyPlugins('chrome', config.devDirectory, config.chromePath),
-      ...getDefinePlugin(JSON.stringify('http://localhost:3001/'))
+      ...getDefinePlugin(JSON.stringify('http://localhost:3001'))
     ]
   },
   {
@@ -76,13 +77,9 @@ module.exports = [
     entry: getEntry(config.firefoxPath),
     output: getOutput('firefox', config.devDirectory),
     plugins: [
-      ...getFirefoxCopyPlugins(
-        'firefox',
-        config.devDirectory,
-        config.firefoxPath
-      ),
+      ...getFirefoxCopyPlugins('firefox', config.devDirectory, config.firefoxPath),
       ...getHTMLPlugins('firefox', config.devDirectory, config.firefoxPath),
-      ...getDefinePlugin(JSON.stringify('http://localhost:3001/'))
+      ...getDefinePlugin(JSON.stringify('http://localhost:3001'))
     ]
   }
 ];

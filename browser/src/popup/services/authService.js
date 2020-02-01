@@ -1,51 +1,20 @@
-import decode from 'jwt-decode';
-import ext from '../../utils/ext';
-import ServicesUtil from './servicesUtil';
+import AbortController from 'node-abort-controller';
+import storage from '../../utils/storage';
+import API from './apiService';
 
-export default class AuthService {
-  // Initializing important variables
-  // constructor(domain) {
-  // this.domain = domain || 'http://localhost:3001'; // API server domain
-  // this.fetch = this.fetch.bind(this); // React binding stuff
-  // this.login = this.login.bind(this);
-  // this.getProfile = this.getProfile.bind(this);
-  // }
+const controller = new AbortController();
 
-  static login(email, password) {
-    // Get a token from api server using the fetch api
-    return ServicesUtil.fetch(`${process.env.API_URL}api/user/login`, {
-      method: 'POST',
-      body: JSON.stringify({
-        email,
-        password
-      })
-    });
+export default {
+  async logout() {
+    controller.abort();
+
+    await API.Logout();
+
+    await storage.set({ csrfToken: '' });
+  },
+
+  async isLoggedIn() {
+    const csrfToken = await storage.get('csrfToken');
+    return !!csrfToken;
   }
-
-  static logout() {
-    // Clear user token and profile data from localStorage
-    ext.storage.local.set({ csrfToken: '' }, () => {});
-  }
-
-  static isLoggedIn(isConnected) {
-    return ServicesUtil.getCsrfToken().then(token => {
-      if (isConnected) {
-        return true;
-      }
-      return !!token && !AuthService.isTokenExpired(token);
-    });
-  }
-
-  static isTokenExpired(token) {
-    try {
-      const decoded = decode(token);
-      if (decoded.exp < Date.now() / 1000) {
-        // Checking if token is expired. N
-        return true;
-      }
-      return false;
-    } catch (err) {
-      return false;
-    }
-  }
-}
+};

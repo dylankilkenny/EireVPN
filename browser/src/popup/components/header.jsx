@@ -1,14 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FiArrowLeftCircle } from 'react-icons/fi';
+import { FaArrowLeft } from 'react-icons/fa';
 
 import { MdSettings } from 'react-icons/md';
 import { IconContext } from 'react-icons';
 import PropTypes from 'prop-types';
 
 const Cont = styled.div`
-  padding-top: 10px; 
-  height 70px;
+  padding-top: 15px; 
+  height 60px;
+  padding-left: 14px;
+  background-color: #004643;
 `;
 
 const BrandingCont = styled.div`
@@ -21,10 +23,12 @@ const IconCont = styled.div`
   margin-left: 85%;
 `;
 
+const HeaderBranding = () => <h2 className="branding">ÉireVPN</h2>;
+
 const LoginHeader = () => (
   <Cont>
     <BrandingCont>
-      <h2>ÉireVPN</h2>
+      <HeaderBranding />
     </BrandingCont>
   </Cont>
 );
@@ -32,12 +36,12 @@ const LoginHeader = () => (
 const MainHeader = ({ renderSettings }) => (
   <Cont>
     <BrandingCont>
-      <h2>EireVPN</h2>
+      <HeaderBranding />
     </BrandingCont>
     <IconCont>
-      <IconContext.Provider value={{ size: '2em', color: '#5a6268' }}>
-        <div>
-          <MdSettings style={{ cursor: 'pointer' }} onClick={renderSettings} />
+      <IconContext.Provider value={{ size: '1.5em', color: 'white' }}>
+        <div title="settings">
+          <MdSettings style={{ cursor: 'pointer', marginTop: 7 }} onClick={renderSettings} />
         </div>
       </IconContext.Provider>
     </IconCont>
@@ -46,9 +50,9 @@ const MainHeader = ({ renderSettings }) => (
 
 const SettingsHeader = ({ renderMain }) => (
   <Cont>
-    <IconContext.Provider value={{ size: '2em', color: '#5a6268' }}>
+    <IconContext.Provider value={{ size: '1.5em', color: 'white' }}>
       <div>
-        <FiArrowLeftCircle style={{ cursor: 'pointer' }} onClick={renderMain} />
+        <FaArrowLeft style={{ cursor: 'pointer' }} onClick={renderMain} />
       </div>
     </IconContext.Provider>
   </Cont>
@@ -60,7 +64,7 @@ const Header = ({ view, renderSettings, renderMain }) => {
       return <LoginHeader />;
     case 1:
       return <MainHeader renderSettings={renderSettings} />;
-    case 2:
+    case 3:
       return <SettingsHeader renderMain={renderMain} />;
     default:
       return <LoginHeader />;
