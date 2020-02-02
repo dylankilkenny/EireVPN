@@ -24,7 +24,7 @@ func Init(enabled bool) {
 func Log(fields Fields) {
 	if loggingEnabled {
 		var str strings.Builder
-		str.WriteString(fmt.Sprintf("%s %v - ", Bold(BrightRed("ERROR")), time.Now().Format("2006-03-02 15:04:05")))
+		str.WriteString(fmt.Sprintf("%s %v - ", Bold(BrightRed("ERROR")), time.Now().Format("2006-01-02 15:04:05")))
 		for k, v := range fields.Extra {
 			if k == "Err" {
 				v = strings.Replace(v.(string), "\n", " ", -1)

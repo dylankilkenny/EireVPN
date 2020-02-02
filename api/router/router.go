@@ -12,6 +12,7 @@ import (
 
 	"eirevpn/api/plan"
 	"eirevpn/api/user"
+	"eirevpn/api/userplan"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,12 @@ func Init(logging bool) *gin.Engine {
 	protected.GET("/plans", plan.AllPlans)
 	public.GET("/plans", plan.AllPlansPublic)
 
+	protected.GET("/userplans/:id", userplan.UserPlan)
+	protected.POST("/userplans/create", userplan.CreateUserPlan)
+	protected.PUT("/userplans/update/:id", userplan.UpdateUserPlan)
+	protected.DELETE("/userplans/delete/:id", userplan.DeleteUserPlan)
+	protected.GET("/userplans", userplan.AllUserPlans)
+
 	protected.GET("/servers/:id", server.Server)
 	protected.POST("/servers/create", server.CreateServer)
 	protected.PUT("/servers/update/:id", server.UpdateServer)
@@ -117,9 +124,10 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 
 			if err := usersession.Find(); err != nil {
 				logger.Log(logger.Fields{
-					Loc:  "router.go - auth()",
-					Code: errors.InvalidIdentifier.Code,
-					Err:  err.Error(),
+					Loc:   "router.go - auth()",
+					Code:  errors.InvalidIdentifier.Code,
+					Extra: map[string]interface{}{"Identifier": usersession.Identifier},
+					Err:   err.Error(),
 				})
 				c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
 				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)

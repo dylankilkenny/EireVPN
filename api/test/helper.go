@@ -57,11 +57,6 @@ func InitDB() {
 
 	db.Init(conf, false, models.Get())
 	dbInstance = db.GetDB()
-
-	if err != nil {
-		log.Println("Failed to connect to testing database")
-		panic(err)
-	}
 	log.Println("Testing Database connected")
 
 	CreateCleanDB()
@@ -174,17 +169,22 @@ func DropPlanTable() {
 	dbInstance.DropTableIfExists(&models.Plan{})
 }
 
+// DropPlanTable dros the plan table from the db
+func DropUserPlanTable() {
+	dbInstance.DropTableIfExists(&models.UserPlan{})
+}
+
 // DropServerTable dros the server table from the db
 func DropServerTable() {
 	dbInstance.DropTableIfExists(&models.Server{})
 }
 
 // GetToken fetches a jwt token for the given user
-func GetToken(u *models.User) (authToken, refreshToken, csrfToken string) {
+func GetToken(u *models.User) (authToken, csrfToken string) {
 	var usersession models.UserAppSession
 	usersession.UserID = u.ID
 	dbInstance.Create(&usersession)
-	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
+	authToken, csrfToken, err := jwt.Tokens(usersession)
 	if err != nil {
 		//TODO: add internal server error response here
 		fmt.Printf("Error creating auth token for user ")

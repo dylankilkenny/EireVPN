@@ -243,21 +243,6 @@ func Connect(c *gin.Context) {
 			c.AbortWithStatusJSON(errors.UserPlanExpired.Status, errors.UserPlanExpired)
 			return
 		}
-		var user models.User
-		user.ID = userID.(uint)
-		if err := user.Find(); err != nil {
-			logger.Log(logger.Fields{
-				Loc:  "/user/session/:planid - StripeSession()",
-				Code: errors.UserNotFound.Code,
-				Extra: map[string]interface{}{
-					"UserID": userID,
-					"Detail": errors.UserNotFound.Detail,
-				},
-				Err: err.Error(),
-			})
-			c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
