@@ -1,4 +1,4 @@
-import Header from './Header';
+import { HeaderUser, HeaderAdmin, HeaderLogin } from './Header';
 import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -12,15 +12,19 @@ const HtmlHead = (): JSX.Element => {
   return (
     <Head>
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      <link
+        href="https://fonts.googleapis.com/css?family=Fredoka+One&display=swap"
+        rel="stylesheet"
+      />
     </Head>
   );
 };
 
-const Layout: React.FC<Props> = props => (
+const LayoutLanding: React.FC<Props> = props => (
   <div>
     <HtmlHead />
     <div>
-      <Header />
+      <HeaderUser />
       {props.children}
     </div>
   </div>
@@ -29,7 +33,7 @@ const Layout: React.FC<Props> = props => (
 const LayoutLogin: React.FC<Props> = props => (
   <div>
     <HtmlHead />
-    <Header />
+    <HeaderLogin />
     <Container>
       <Row>
         <Col sm={12} md={2} lg={3}></Col>
@@ -47,13 +51,10 @@ interface AdminDashProps {
   children: React.ReactNode;
 }
 
-const LayoutAdminDash: React.FC<AdminDashProps> = ({
-  AdminSidePanel,
-  children
-}) => (
+const LayoutAdminDash: React.FC<AdminDashProps> = ({ AdminSidePanel, children }) => (
   <div>
     <HtmlHead />
-    <Header />
+    <HeaderAdmin />
     <Container fluid>
       <Row>
         <Col sm={12} md={3} lg={2}>
@@ -65,4 +66,4 @@ const LayoutAdminDash: React.FC<AdminDashProps> = ({
   </div>
 );
 
-export { Layout, LayoutLogin, LayoutAdminDash };
+export { LayoutLanding, LayoutLogin, LayoutAdminDash };

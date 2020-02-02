@@ -1,3 +1,95 @@
+/* Header */
+body {
+    background-color: #004643;
+}
+
+.header {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+.branding {
+    font-family: 'Fredoka One', cursive;
+    color: #f9bc60;
+    letter-spacing: 0.06em;
+}
+
+.header-link {
+    font-family: 'Helvetica';
+    font-size: 1.3em;
+    font-weight: 500;
+    margin-left: 15px;
+    margin-right: 15px;
+    font-weight: 500;
+    color: #fffffe;
+    letter-spacing: 0.04em;
+}
+
+.badge-custom {
+    font-size: 20px;
+    font-family: Helvetica;
+    padding-top: 0.2em;
+    padding-right: 0.2em;
+    padding-left: 0.2em;
+    padding-bottom: 0.1em;
+    margin-left: 0.7em;
+    margin-bottom: 0.5em;
+    letter-spacing: 0.02em;
+    background-color: #abd1c6;
+    color: #004643;
+    vertical-align: middle;
+}
+
+/* Hamburger Icons */
+.navbar-light button.navbar-toggler.collapsed span.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.navbar-light button.navbar-toggler span.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+/**/
+
+.btn-landing {
+    background-color: #e16162;
+    border-color: #e16162;
+    color: #fffffe;
+    font-size: 25px;
+    letter-spacing: 0.03em;
+}
+
+.btn-landing.sm {
+    background-color: #e16162;
+    border-color: #e16162;
+    color: #fffffe;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    margin-left: 15px;
+}
+
+.btn-landing:hover {
+    color: #fffffe;
+    background-color: #e16162;
+    opacity: 0.8;
+    border-color: #e16162;
+
+}
+
+.headline {
+    font-family: 'Helvetica';
+    color: #fffffe;
+    font-size: 50px;
+    letter-spacing: 0.03em;
+    padding-top: 90px;
+}
+
+.p-landing {
+    color: #abd1c6;
+    font-size: 30px;
+    letter-spacing: 0.03em;
+}
+
 .button-toolbar {
     width: 100%;
     height: 3em;
@@ -14,9 +106,6 @@
     width: 80%;
 }
 
-/* .btn-save {
-    float: right
-} */
 
 .table-admin-list {
     cursor: pointer;
