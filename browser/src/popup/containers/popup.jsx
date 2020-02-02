@@ -3,8 +3,8 @@ import Login from './login';
 import Main from './main';
 import Settings from './settings';
 import Connect from './connect';
+import Incognito from './incognito';
 import Header from '../components/header';
-import LargeAlert from '../components/largeAlert';
 import PopupContainer from '../components/container';
 import AuthService from '../services/authService';
 import ext from '../../utils/ext';
@@ -26,8 +26,9 @@ class Popup extends React.Component {
 
   async componentDidMount() {
     const isFirefox = typeof InstallTrigger !== 'undefined';
+    console.log(isFirefox);
     if (isFirefox) {
-      const allowed = ext.extension.isAllowedIncognitoAccess();
+      const allowed = await ext.extension.isAllowedIncognitoAccess();
       if (!allowed) {
         this.renderIcognito();
       } else {
@@ -119,13 +120,7 @@ class Popup extends React.Component {
         return (
           <PopupContainer>
             <Header view={this.state.renderView} renderMain={this.renderMain} />
-            <LargeAlert
-              variant="warning"
-              heading="Private Browsing Disabled"
-              body={```To use this extension private browsing is required. 
-              To enable private browsing right click on this extension and choose 
-              manage extension. You will see an option "Run in Private Windows", click allow.```}
-            />
+            <Incognito />
           </PopupContainer>
         );
       default:

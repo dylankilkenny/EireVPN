@@ -1,31 +1,32 @@
 {
-  "parser": "babel-eslint",
-  "extends": "airbnb",
-  "globals": {
-    "fetch": false
-  },
-  "env": {
-    "node": true,
-    "es6": true,
-    "browser": true
-  },
-  "rules": {
-    "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
-    "react/forbid-prop-types": 0,
-    "react/prop-types": 0,
-    "camelcase": 0,
-    "react/require-default-props": 0,
-    "comma-dangle": 0,
-    "function-paren-newline": 0,
-    "arrow-parens": 0,
-    "space-before-function-paren": 0,
-    "object-curly-newline": 0,
-    "dot-notation": 0,
-    "import/no-named-as-default": 0,
-    "import/no-named-as-default-member": 0,
-    "jsx-a11y/click-events-have-key-events": 0,
-    "jsx-a11y/no-static-element-interactions": 0,
-    "quotes": 0,
-    "react/no-did-mount-set-state": 0
-  }
+    "parser": "babel-eslint",
+    "extends": "airbnb",
+    "globals": {
+        "fetch": false
+    },
+    "env": {
+        "node": true,
+        "es6": true,
+        "browser": true
+    },
+    "rules": {
+        "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+        "react/forbid-prop-types": 0,
+        "react/prop-types": 0,
+        "camelcase": 0,
+        "react/require-default-props": 0,
+        "comma-dangle": 0,
+        "function-paren-newline": 0,
+        "arrow-parens": 0,
+        "space-before-function-paren": 0,
+        "object-curly-newline": 0,
+        "dot-notation": 0,
+        "import/no-named-as-default": 0,
+        "import/no-named-as-default-member": 0,
+        "jsx-a11y/click-events-have-key-events": 0,
+        "jsx-a11y/no-static-element-interactions": 0,
+        "quotes": 0,
+        "react/no-did-mount-set-state": 0,
+        "no-console": 0
+    }
 }

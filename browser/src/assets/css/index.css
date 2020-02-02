@@ -1,5 +1,6 @@
 body {
     background-color: white;
+    overflow-x: hidden;
 }
 
 .branding {
@@ -7,6 +8,13 @@ body {
     color: #f9bc60;
     letter-spacing: 0.06em;
     margin-left: 13px;
+    /* text-shadow: -1px 0 #abd1c6, 0 1px #abd1c6, 1px 0 #abd1c6, 0 -1px #abd1c6, 1px 1px 1px #abd1c6,
+    1px 2px 1px #abd1c6,
+    1px 3px 1px #abd1c6,
+    1px 4px 1px #abd1c6,
+    1px 5px 1px #abd1c6,
+    1px 6px 1px #abd1c6,
+    1px 18px 6px rgba(16, 16, 16, 0.4); */
 }
 
 .login {
@@ -26,9 +34,19 @@ body {
 }
 
 .btn-custom {
-    background-color: #e16162;
-    border-color: #e16162;
-    color: #fffffe;
+    border: 1px solid #abd1c6;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    box-shadow: 3px 4px 2px #abd1c6;
+    color: black;
+}
+
+.btn-custom:hover {
+    background-color: white;
+    border: 1px solid #abd1c6;
+    color: black;
 }
 
 .main-container {
@@ -239,4 +257,17 @@ body {
     background-color: #e16162;
     color: white;
     cursor: pointer;
+}
+
+.alert-incognito {
+    font-size: 14px;
+    padding: 7px !important;
+}
+
+.image-incognito {
+    margin-left: 16px;
+}
+
+.allow-img {
+    margin-left: 35px;
 }
