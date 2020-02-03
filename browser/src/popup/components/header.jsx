@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FaArrowLeft } from 'react-icons/fa';
-
+import Image from 'react-bootstrap/Image';
 import { MdSettings } from 'react-icons/md';
 import { IconContext } from 'react-icons';
 import PropTypes from 'prop-types';
 
 const Cont = styled.div`
-  padding-top: 15px; 
+  padding-top: 5px; 
   height 60px;
   padding-left: 14px;
   background-color: #004643;
@@ -23,7 +23,12 @@ const IconCont = styled.div`
   margin-left: 85%;
 `;
 
-const HeaderBranding = () => <h2 className="branding">ÉireVPN</h2>;
+const HeaderBranding = () => (
+  <div>
+    <Image className="shield" src="../../assets/icons/logo-shield-48.png" />
+    <h2 className="branding">ÉireVPN</h2>
+  </div>
+);
 
 const LoginHeader = () => (
   <Cont>
@@ -39,10 +44,8 @@ const MainHeader = ({ renderSettings }) => (
       <HeaderBranding />
     </BrandingCont>
     <IconCont>
-      <IconContext.Provider value={{ size: '1.5em', color: 'white' }}>
-        <div title="settings">
-          <MdSettings style={{ cursor: 'pointer', marginTop: 7 }} onClick={renderSettings} />
-        </div>
+      <IconContext.Provider value={{ size: '1.5em', color: 'white', className: 'settings-icon' }}>
+        <MdSettings onClick={renderSettings} />
       </IconContext.Provider>
     </IconCont>
   </Cont>
@@ -50,10 +53,8 @@ const MainHeader = ({ renderSettings }) => (
 
 const SettingsHeader = ({ renderMain }) => (
   <Cont>
-    <IconContext.Provider value={{ size: '1.5em', color: 'white' }}>
-      <div>
-        <FaArrowLeft style={{ cursor: 'pointer' }} onClick={renderMain} />
-      </div>
+    <IconContext.Provider value={{ size: '1.5em', color: 'white', className: 'back-arrow-icon' }}>
+      <FaArrowLeft onClick={renderMain} />
     </IconContext.Provider>
   </Cont>
 );
