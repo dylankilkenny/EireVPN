@@ -1,5 +1,5 @@
 App:
-  Port: 3001
+  Port: '3001'
   Domain: localhost
   JWTSecret: secretkey1995
   AllowedOrigins:
@@ -7,6 +7,9 @@ App:
   EnableCSRF: false
   EnableSubscriptions: false
   EnableAuth: false
+  AuthCookieAge: 168
+  AuthCookieName: authToken
+  AuthTokenExpiry: 48
 
 DB:
   User: eirevpn_dev
