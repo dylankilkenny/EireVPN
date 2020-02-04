@@ -24,7 +24,7 @@ class Main extends React.Component {
       const { username, password, ip, port } = resp.data;
       await storage.set({ connected: true, server: this.props.server });
       sendMessage('connect', { ip, port, username, password });
-      this.setState({ server: this.props.server, connected: true, ip: ip });
+      this.setState({ server: this.props.server, connected: true, ip });
     } else if (resp.status === 403) {
       await AuthService.logout();
       this.cleanStorage();
