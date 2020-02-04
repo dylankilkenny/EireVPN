@@ -8,7 +8,10 @@ import (
 	"eirevpn/api/server"
 	"eirevpn/api/settings"
 	"eirevpn/api/util/jwt"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 
 	"eirevpn/api/plan"
 	"eirevpn/api/user"
@@ -25,7 +28,13 @@ func Init(logging bool) *gin.Engine {
 	conf := config.GetConfig()
 
 	var router *gin.Engine
+
 	if logging {
+		var file, err = os.OpenFile(logger.LogFilePath, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		gin.DefaultWriter = io.MultiWriter(file, os.Stdout)
 		router = gin.Default()
 	} else {
 		gin.SetMode(gin.ReleaseMode)
