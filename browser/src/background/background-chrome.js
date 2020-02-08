@@ -11,17 +11,6 @@ function setAuth(details, callbackFn) {
   }
 }
 
-function rewriteUserAgentHeader(e) {
-  if (e.initiator.includes('chrome-extension')) {
-    for (const header of e.requestHeaders) {
-      if (header.name === 'Origin') {
-        header.value = process.env.API_URL;
-      }
-    }
-  }
-  return { requestHeaders: e.requestHeaders };
-}
-
 function connectProxy(proxy) {
   const config = {
     mode: 'fixed_servers',
@@ -55,13 +44,4 @@ function handleMessage(request, sender, sendResponse) {
 }
 
 ext.runtime.onMessage.addListener(handleMessage);
-
-ext.webRequest.onAuthRequired.addListener(setAuth, { urls: ['<all_urls>'] }, [
-  'asyncBlocking'
-]);
-
-ext.webRequest.onBeforeSendHeaders.addListener(
-  rewriteUserAgentHeader,
-  { urls: ['<all_urls>'] },
-  ['blocking', 'requestHeaders']
-);
+ext.webRequest.onAuthRequired.addListener(setAuth, { urls: ['<all_urls>'] }, ['asyncBlocking']);

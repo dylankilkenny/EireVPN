@@ -6,6 +6,9 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import API from '../services/apiService';
 import storage from '../../utils/storage';
+import { MdAccountCircle } from 'react-icons/md';
+import { IconContext } from 'react-icons';
+import ext from '../../utils/ext';
 
 class Login extends React.Component {
   state = {
@@ -46,50 +49,69 @@ class Login extends React.Component {
     }
   };
 
+  createAccount = () => {
+    var newURL = 'http://eirevpn.ie/signup';
+    ext.tabs.create({ url: newURL });
+  };
+
   render() {
     return (
-      <Row className="login">
-        <Col>
-          <Form>
-            <Form.Group as={Row} controlId="formPlaintextEmail">
-              <Form.Label column sm="1" className="label">
-                Email
-              </Form.Label>
-              <Col sm="10">
-                <Form.Control
-                  size="sm"
-                  value={this.state.email}
-                  type="email"
-                  placeholder="Email"
-                  onKeyPress={this.handleKeyPress}
-                  onChange={evt => this.updateFormValue(evt, 'email')}
-                />
-              </Col>
-            </Form.Group>
-            <Form.Group as={Row} controlId="formPlaintextPassword">
-              <Form.Label column sm="1" className="label">
-                Password
-              </Form.Label>
-              <Col sm="10">
-                <Form.Control
-                  size="sm"
-                  value={this.state.password}
-                  type="password"
-                  placeholder="Password"
-                  onKeyPress={this.handleKeyPress}
-                  onChange={evt => this.updateFormValue(evt, 'password')}
-                />
-              </Col>
-            </Form.Group>
-          </Form>
-          <Alert style={{ fontSize: 14 }} show={this.state.showAlert} variant="danger">
-            {this.state.alertMsg}
-          </Alert>
-          <Button onClick={this.login} variant="secondary" className="btn-custom">
-            Submit
-          </Button>
-        </Col>
-      </Row>
+      <div>
+        <Row className="login">
+          <Col>
+            <Form>
+              <Form.Group as={Row} controlId="formPlaintextEmail">
+                <Form.Label column sm="1" className="label">
+                  Email
+                </Form.Label>
+                <Col sm="10">
+                  <Form.Control
+                    size="sm"
+                    value={this.state.email}
+                    type="email"
+                    placeholder="Email"
+                    onKeyPress={this.handleKeyPress}
+                    onChange={evt => this.updateFormValue(evt, 'email')}
+                  />
+                </Col>
+              </Form.Group>
+              <Form.Group as={Row} controlId="formPlaintextPassword">
+                <Form.Label column sm="1" className="label">
+                  Password
+                </Form.Label>
+                <Col sm="10">
+                  <Form.Control
+                    size="sm"
+                    value={this.state.password}
+                    type="password"
+                    placeholder="Password"
+                    onKeyPress={this.handleKeyPress}
+                    onChange={evt => this.updateFormValue(evt, 'password')}
+                  />
+                </Col>
+              </Form.Group>
+            </Form>
+            <Alert style={{ fontSize: 14 }} show={this.state.showAlert} variant="danger">
+              {this.state.alertMsg}
+            </Alert>
+            <Button onClick={this.login} variant="secondary" className="btn-custom">
+              Submit
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div className="create-acc-cont">
+              <div onClick={() => this.createAccount()} className="create-account-link">
+                <IconContext.Provider value={{ size: '1.5em' }}>
+                  <MdAccountCircle />
+                </IconContext.Provider>
+                Create Free Account
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
     );
   }
 }

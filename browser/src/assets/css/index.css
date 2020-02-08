@@ -287,3 +287,15 @@ body {
 .allow-img {
     margin-left: 35px;
 }
+
+.create-acc-cont {
+    margin-left: 65px;
+    margin-top: 63px;
+    color: #545353;
+    font-size: 15px;
+}
+
+.create-account-link {
+    cursor: pointer;
+    width: 180px;
+}

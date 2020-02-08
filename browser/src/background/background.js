@@ -30,7 +30,7 @@ function rewriteUserAgentHeader(e) {
   if (e.documentUrl.includes('extension')) {
     for (const header of e.requestHeaders) {
       if (header.name === 'Origin') {
-        header.value = process.env.API_URL;
+        header.value = 'moz-extension://extensions@eirevpn.ie';
       }
     }
   }
@@ -62,13 +62,15 @@ function disconnectProxy() {
   clearing.then(onCleared);
 }
 
-ext.runtime.onMessage.addListener(request => {
+function handleMessage(request, sender, sendResponse) {
   if (request.action === 'connect') {
     connectProxy(request.data);
   } else if (request.action === 'disconnect') {
     disconnectProxy();
   }
-});
+}
+
+ext.runtime.onMessage.addListener(handleMessage);
 
 ext.webRequest.onBeforeSendHeaders.addListener(rewriteUserAgentHeader, { urls: ['<all_urls>'] }, [
   'blocking',

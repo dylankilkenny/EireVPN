@@ -1,12 +1,17 @@
 {
   "name": "ÉireVPN Beta - Free VPN Proxy",
   "author": "ÉireVPN Team",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "manifest_version": 2,
   "description": "ÉireVPN is an irish based VPN solution",
   "icons": {
     "48": "assets/icons/logo-shield-48.png",
     "128": "assets/icons/logo-shield-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extensions@eirevpn.ie"
+    }
   },
   "default_locale": "en",
   "background": {
@@ -21,10 +26,10 @@
     "webRequest",
     "webRequestBlocking",
     "proxy",
-    "http://*/*",
-    "https://*/*",
-    "*://0.0.0.0/*",
-    "*://localhost/*"
+    "http://api.eirevpn.ie/",
+    "https://api.eirevpn.ie/",
+    "http://localhost/"
+
   ],
   "browser_action": {
     "default_icon": {
