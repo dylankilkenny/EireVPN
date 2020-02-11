@@ -104,13 +104,19 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 		if conf.App.EnableAuth {
 			var usersession models.UserAppSession
 
-			// Fetch refresh token
+			// Fetch auth token
 			authToken, err := c.Request.Cookie(conf.App.AuthCookieName)
-			if err != nil {
+			if err != nil || authToken.Value == "" {
+				var errMsg string
+				if err != nil {
+					errMsg = err.Error()
+				} else {
+					errMsg = "Auth cookie missing"
+				}
 				logger.Log(logger.Fields{
 					Loc:  "router.go - auth()",
 					Code: errors.AuthCookieMissing.Code,
-					Err:  err.Error(),
+					Err:  errMsg,
 				})
 				c.AbortWithStatusJSON(errors.AuthCookieMissing.Status, errors.AuthCookieMissing)
 				return
@@ -119,14 +125,38 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			// Check auth token is valid
 			authClaims, err := jwt.ValidateToken(authToken.Value)
 			if err != nil {
-				logger.Log(logger.Fields{
-					Loc:  "router.go - auth()",
-					Code: errors.TokenInvalid.Code,
-					Err:  err.Error(),
-				})
-				c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
-				c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
-				return
+
+				// Fetch refresh token
+				refreshToken, err := c.Request.Cookie(conf.App.RefreshCookieName)
+				if err != nil || refreshToken.Value == "" {
+					var errMsg string
+					if err != nil {
+						errMsg = err.Error()
+					} else {
+						errMsg = "Refresh cookie missing"
+					}
+					logger.Log(logger.Fields{
+						Loc:  "router.go - auth()",
+						Code: errors.RefresCookieMissing.Code,
+						Err:  errMsg,
+					})
+					clearCookies(c)
+					c.AbortWithStatusJSON(errors.RefresCookieMissing.Status, errors.RefresCookieMissing)
+					return
+				}
+
+				_, err = jwt.ValidateToken(refreshToken.Value)
+				if err != nil {
+					logger.Log(logger.Fields{
+						Loc:  "router.go - auth()",
+						Code: errors.TokenInvalid.Code,
+						Err:  err.Error(),
+					})
+					clearCookies(c)
+					c.AbortWithStatusJSON(errors.TokenInvalid.Status, errors.TokenInvalid)
+					return
+				}
+
 			}
 
 			usersession = models.UserAppSession{
@@ -141,7 +171,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 					Extra: map[string]interface{}{"Identifier": usersession.Identifier},
 					Err:   err.Error(),
 				})
-				c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+				clearCookies(c)
 				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
 				return
 			}
@@ -214,7 +244,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 			}
 
 			// If all auth checks pass create fresh tokens
-			newAuthToken, newCsrfToken, err := jwt.Tokens(newUserSession)
+			newAuthToken, newRefreshToken, newCsrfToken, err := jwt.Tokens(newUserSession)
 			if err != nil {
 				logger.Log(logger.Fields{
 					Loc:   "router.go - auth()",
@@ -231,8 +261,18 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 
 			// TODO: Change the domain name and add correct maxAge time
 			authCookieMaxAge := 24 * 60 * conf.App.AuthCookieAge
+			refreshCookieMaxAge := 24 * 60 * conf.App.RefreshCookieAge
 			c.SetCookie(conf.App.AuthCookieName, newAuthToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
+			c.SetCookie(conf.App.RefreshCookieName, newRefreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, true)
+			c.SetCookie("uid", strconv.FormatUint(uint64(newUserSession.UserID), 10), authCookieMaxAge, "/", conf.App.Domain, false, false)
 			c.Header("X-CSRF-Token", newCsrfToken)
 		}
 	}
+}
+
+func clearCookies(c *gin.Context) {
+	conf := config.GetConfig()
+	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
 }

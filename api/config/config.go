@@ -19,8 +19,11 @@ type Config struct {
 		EnableSubscriptions bool     `yaml:"EnableSubscriptions"`
 		EnableAuth          bool     `yaml:"EnableAuth"`
 		AuthCookieAge       int      `yaml:"AuthCookieAge"`
+		RefreshCookieAge    int      `yaml:"RefreshCookieAge"`
 		AuthCookieName      string   `yaml:"AuthCookieName"`
+		RefreshCookieName   string   `yaml:"RefreshCookieName"`
 		AuthTokenExpiry     int      `yaml:"AuthTokenExpiry"`
+		RefreshTokenExpiry  int      `yaml:"RefreshTokenExpiry"`
 	} `yaml:"App"`
 
 	DB struct {

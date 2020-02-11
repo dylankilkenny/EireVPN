@@ -32,12 +32,15 @@ func TestMain(m *testing.M) {
 func TestAuthTokens(t *testing.T) {
 	conf := config.GetConfig()
 
-	makeRequest := func(t *testing.T, authToken, csrfToken string) *httptest.ResponseRecorder {
+	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) *httptest.ResponseRecorder {
 		t.Helper()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/api/private/servers", nil)
 		if authToken != "" {
 			req.AddCookie(&http.Cookie{Name: conf.App.AuthCookieName, Value: authToken, Expires: time.Now().Add(time.Minute * 5)})
+		}
+		if refreshToken != "" {
+			req.AddCookie(&http.Cookie{Name: conf.App.RefreshCookieName, Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)})
 		}
 		req.Header.Set("X-CSRF-Token", csrfToken)
 		r.ServeHTTP(w, req)
@@ -47,19 +50,19 @@ func TestAuthTokens(t *testing.T) {
 	t.Run("Successful Authentification", func(t *testing.T) {
 		user := CreateUser()
 		_ = CreateServer()
-		authToken, csrfToken := GetToken(user)
+		authToken, refreshToken, csrfToken := GetTokens(user)
 		want := 200
-		got := makeRequest(t, authToken, csrfToken)
+		got := makeRequest(t, authToken, refreshToken, csrfToken)
 		assertCorrectStatus(t, want, got.Code)
 		CreateCleanDB()
 	})
 
 	t.Run("No Auth cookie", func(t *testing.T) {
 		user := CreateUser()
-		_, csrfToken := GetToken(user)
+		_, refreshToken, csrfToken := GetTokens(user)
 		wantStatus := 403
 		wantCode := "AUTHCOOKMISS"
-		resp := makeRequest(t, "", csrfToken)
+		resp := makeRequest(t, "", refreshToken, csrfToken)
 		apiErr := bindError(resp)
 		assertCorrectStatus(t, wantStatus, apiErr.Status)
 		assertCorrectCode(t, wantCode, apiErr.Code)
@@ -68,10 +71,10 @@ func TestAuthTokens(t *testing.T) {
 
 	t.Run("Token invalid", func(t *testing.T) {
 		user := CreateUser()
-		authToken, csrfToken := GetToken(user)
+		authToken, refreshToken, csrfToken := GetTokens(user)
 		wantStatus := 403
 		wantCode := "TOKENINVALID"
-		resp := makeRequest(t, authToken+"p", csrfToken)
+		resp := makeRequest(t, authToken+"p", refreshToken, csrfToken)
 		apiErr := bindError(resp)
 		assertCorrectStatus(t, wantStatus, apiErr.Status)
 		assertCorrectCode(t, wantCode, apiErr.Code)
@@ -80,11 +83,11 @@ func TestAuthTokens(t *testing.T) {
 
 	t.Run("Invalid identifier", func(t *testing.T) {
 		user := CreateUser()
-		authToken, csrfToken := GetToken(user)
+		authToken, refreshToken, csrfToken := GetTokens(user)
 		DeleteIdentifier(user)
 		wantStatus := 403
 		wantCode := "INVIDENTIFIER"
-		resp := makeRequest(t, authToken, csrfToken)
+		resp := makeRequest(t, authToken, refreshToken, csrfToken)
 		apiErr := bindError(resp)
 		assertCorrectStatus(t, wantStatus, apiErr.Status)
 		assertCorrectCode(t, wantCode, apiErr.Code)
@@ -93,10 +96,10 @@ func TestAuthTokens(t *testing.T) {
 
 	t.Run("CSRF Invalid", func(t *testing.T) {
 		user := CreateUser()
-		authToken, _ := GetToken(user)
+		authToken, refreshToken, _ := GetTokens(user)
 		wantStatus := 403
 		wantCode := "CSRFTOKEN"
-		resp := makeRequest(t, authToken, "")
+		resp := makeRequest(t, authToken, refreshToken, "")
 		apiErr := bindError(resp)
 		assertCorrectStatus(t, wantStatus, apiErr.Status)
 		assertCorrectCode(t, wantCode, apiErr.Code)

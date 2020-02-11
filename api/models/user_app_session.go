@@ -10,8 +10,8 @@ import (
 // UserAppSession contains the users session identifier token
 type UserAppSession struct {
 	BaseModel
-	UserID     uint   `json:"user_id"`
-	Identifier string `json:"indentifier"`
+	UserID      uint   `json:"user_id"`
+	Identifier  string `json:"indentifier"`
 }
 
 func (us *UserAppSession) Find() error {

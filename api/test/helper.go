@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -180,16 +181,29 @@ func DropServerTable() {
 }
 
 // GetToken fetches a jwt token for the given user
-func GetToken(u *models.User) (authToken, csrfToken string) {
+func GetTokens(u *models.User) (string, string, string) {
 	var usersession models.UserAppSession
 	usersession.UserID = u.ID
 	dbInstance.Create(&usersession)
-	authToken, csrfToken, err := jwt.Tokens(usersession)
+	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
 	if err != nil {
 		//TODO: add internal server error response here
 		fmt.Printf("Error creating auth token for user ")
 	}
-	return
+	return authToken, refreshToken, csrfToken
+}
+
+// AddTokens appends tokens to http req
+func AddTokens(u *models.User, req *http.Request) {
+	conf := config.GetConfig()
+	authToken, refreshToken, csrfToken := GetTokens(u)
+	if err != nil {
+		//TODO: add internal server error response here
+		fmt.Printf("Error creating auth token for user ")
+	}
+	req.AddCookie(&http.Cookie{Name: conf.App.AuthCookieName, Value: authToken, Expires: time.Now().Add(time.Minute * 5)})
+	req.AddCookie(&http.Cookie{Name: conf.App.RefreshCookieName, Value: refreshToken, Expires: time.Now().Add(time.Minute * 5)})
+	req.Header.Set("X-CSRF-Token", csrfToken)
 }
 
 // DeleteIdentifier removes the users session identifier

@@ -2,13 +2,12 @@ package test
 
 import (
 	"bytes"
-	"eirevpn/api/config"
+	"eirevpn/api/models"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 func TestLoginRoute(t *testing.T) {
@@ -93,73 +92,64 @@ func TestSignUpRoute(t *testing.T) {
 }
 
 func TestAllUsersRoute(t *testing.T) {
-	conf := config.GetConfig()
-	makeRequest := func(t *testing.T, authToken, csrfToken string) int {
+	makeRequest := func(t *testing.T, user *models.User) int {
 		t.Helper()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/api/protected/users", nil)
-		authCookie := http.Cookie{Name: conf.App.AuthCookieName, Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
-		req.Header.Set("X-CSRF-Token", csrfToken)
-		req.AddCookie(&authCookie)
+		AddTokens(user, req)
 		r.ServeHTTP(w, req)
 		return w.Code
 	}
 
 	t.Run("Successful get all users", func(t *testing.T) {
 		user := CreateAdminUser()
-		authToken, csrfToken := GetToken(user)
+
 		want := 200
-		got := makeRequest(t, authToken, csrfToken)
+		got := makeRequest(t, user)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
 func TestGetUserRoute(t *testing.T) {
-	conf := config.GetConfig()
-	makeRequest := func(t *testing.T, authToken, csrfToken string, userId uint) int {
+	makeRequest := func(t *testing.T, user *models.User, userId uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		url := fmt.Sprintf("/api/protected/user/%d", userId)
+		url := fmt.Sprintf("/api/private/user/get/%d", userId)
 		req, _ := http.NewRequest("GET", url, nil)
-		authCookie := http.Cookie{Name: conf.App.AuthCookieName, Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
-		req.Header.Set("X-CSRF-Token", csrfToken)
-		req.AddCookie(&authCookie)
+		AddTokens(user, req)
 		r.ServeHTTP(w, req)
 		return w.Code
 	}
 
 	t.Run("Retrieve user by ID", func(t *testing.T) {
 		user := CreateAdminUser()
-		authToken, csrfToken := GetToken(user)
+
 		want := 200
-		got := makeRequest(t, authToken, csrfToken, user.ID)
+		got := makeRequest(t, user, user.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 
 	t.Run("User not found", func(t *testing.T) {
 		user := CreateAdminUser()
-		authToken, csrfToken := GetToken(user)
+
 		want := 400
 		planID := uint(999)
-		got := makeRequest(t, authToken, csrfToken, planID)
+		got := makeRequest(t, user, planID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
 }
 
 func TestUpdateUserRoute(t *testing.T) {
-	conf := config.GetConfig()
-	makeRequest := func(t *testing.T, authToken, csrfToken string, user map[string]interface{}, userId uint) int {
+	makeRequest := func(t *testing.T, user *models.User, userupdate map[string]interface{}, userId uint) int {
 		t.Helper()
 		w := httptest.NewRecorder()
-		j, _ := json.Marshal(user)
-		url := fmt.Sprintf("/api/protected/user/update/%d", userId)
+		j, _ := json.Marshal(userupdate)
+		url := fmt.Sprintf("/api/private/user/update/%d", userId)
 		req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(j))
-		authCookie := http.Cookie{Name: conf.App.AuthCookieName, Value: authToken, Expires: time.Now().Add(time.Minute * 5)}
-		req.Header.Set("X-CSRF-Token", csrfToken)
-		req.AddCookie(&authCookie)
+		AddTokens(user, req)
 		r.ServeHTTP(w, req)
 		return w.Code
 	}
@@ -171,9 +161,9 @@ func TestUpdateUserRoute(t *testing.T) {
 			"email":     "sw@email.com",
 		}
 		user := CreateAdminUser()
-		authToken, csrfToken := GetToken(user)
+
 		want := 200
-		got := makeRequest(t, authToken, csrfToken, plan, user.ID)
+		got := makeRequest(t, user, plan, user.ID)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})
@@ -183,9 +173,46 @@ func TestUpdateUserRoute(t *testing.T) {
 			"firstname": "",
 		}
 		user := CreateAdminUser()
-		authToken, csrfToken := GetToken(user)
+
 		want := 400
-		got := makeRequest(t, authToken, csrfToken, halfFilledUser, user.ID)
+		got := makeRequest(t, user, halfFilledUser, user.ID)
+		assertCorrectStatus(t, want, got)
+		CreateCleanDB()
+	})
+}
+
+func TestChangePasswordRoute(t *testing.T) {
+	makeRequest := func(t *testing.T, user *models.User, passwordupdate map[string]string) int {
+		t.Helper()
+		w := httptest.NewRecorder()
+		j, _ := json.Marshal(passwordupdate)
+		url := fmt.Sprintf("/api/private/user/changepassword")
+		req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(j))
+		AddTokens(user, req)
+		r.ServeHTTP(w, req)
+		return w.Code
+	}
+
+	t.Run("Successful Change Password", func(t *testing.T) {
+		passwordupdate := map[string]string{
+			"current_password": "password",
+			"new_password":     "passwordchanged123",
+		}
+		user := CreateAdminUser()
+		want := 200
+		got := makeRequest(t, user, passwordupdate)
+		assertCorrectStatus(t, want, got)
+		CreateCleanDB()
+	})
+
+	t.Run("Invalid form", func(t *testing.T) {
+		passwordupdate := map[string]string{
+			"current_password": "password",
+			"new_password":     "",
+		}
+		user := CreateAdminUser()
+		want := 400
+		got := makeRequest(t, user, passwordupdate)
 		assertCorrectStatus(t, want, got)
 		CreateCleanDB()
 	})

@@ -474,8 +474,8 @@ func ChangePassword(c *gin.Context) {
 	}
 
 	type ChangePassword struct {
-		CurrentPassword string `json:"current_password"`
-		NewPassword     string `json:"new_password"`
+		CurrentPassword string `json:"current_password" binding:"required"`
+		NewPassword     string `json:"new_password" binding:"required"`
 	}
 
 	changePassword := ChangePassword{}
