@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"eirevpn/api/plan"
 	"eirevpn/api/user"
@@ -46,6 +47,7 @@ func Init(logging bool) *gin.Engine {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = conf.App.AllowedOrigins
 	corsConfig.AllowCredentials = true
+	corsConfig.AllowBrowserExtensions = true
 	corsConfig.ExposeHeaders = []string{"X-CSRF-Token", "X-Auth-Token"}
 	corsConfig.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization", "X-CSRF-Token", "X-Auth-Token")
 	router.Use(cors.New(corsConfig))
@@ -58,8 +60,9 @@ func Init(logging bool) *gin.Engine {
 
 	public.POST("/user/signup", user.SignUpUser)
 	public.POST("/user/login", user.LoginUser)
-	protected.GET("/user/:id", user.User)
-	protected.PUT("/user/update/:id", user.UpdateUser)
+	private.GET("/user/get/:id", user.User)
+	private.PUT("/user/changepassword", user.ChangePassword)
+	private.PUT("/user/update/:id", user.UpdateUser)
 	protected.DELETE("/users/delete/:id", user.DeleteUser)
 	protected.GET("/users", user.AllUsers)
 	public.POST("/user/webhook", user.Webhook)
@@ -75,7 +78,7 @@ func Init(logging bool) *gin.Engine {
 	protected.GET("/plans", plan.AllPlans)
 	public.GET("/plans", plan.AllPlansPublic)
 
-	protected.GET("/userplans/:id", userplan.UserPlan)
+	private.GET("/userplans/:userid", userplan.UserPlan)
 	protected.POST("/userplans/create", userplan.CreateUserPlan)
 	protected.PUT("/userplans/update/:id", userplan.UpdateUserPlan)
 	protected.DELETE("/userplans/delete/:id", userplan.DeleteUserPlan)

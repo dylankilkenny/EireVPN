@@ -20,6 +20,7 @@ import (
 
 // User fetches a user by ID
 func User(c *gin.Context) {
+	conf := config.GetConfig()
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var user models.User
 	user.ID = uint(userID)
@@ -31,6 +32,35 @@ func User(c *gin.Context) {
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/user/:id - User()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+	if cookieUserID.(uint) != user.ID {
+		logger.Log(logger.Fields{
+			Loc:  "/user/:id - User()",
+			Code: errors.ProtectedRouted.Code,
+			Extra: map[string]interface{}{
+				"CookieUserID": cookieUserID,
+				"QueryUserID":  userID,
+			},
+			Err: "User does not have permission to access route",
+		})
+
+		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
+		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
 		return
 	}
 
@@ -48,13 +78,14 @@ func User(c *gin.Context) {
 
 // UpdateUser updates a user
 func UpdateUser(c *gin.Context) {
+	conf := config.GetConfig()
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var user models.User
 	user.ID = uint(userID)
 
 	type UserUpdates struct {
-		FirstName string `json:"firstname" binding:"required"`
-		LastName  string `json:"lastname" binding:"required"`
+		FirstName string `json:"firstname"`
+		LastName  string `json:"lastname"`
 		Email     string `json:"email" binding:"required"`
 	}
 	userUpdates := UserUpdates{}
@@ -67,6 +98,35 @@ func UpdateUser(c *gin.Context) {
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/user/:id - User()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+	if cookieUserID.(uint) != user.ID {
+		logger.Log(logger.Fields{
+			Loc:  "/user/:id - User()",
+			Code: errors.ProtectedRouted.Code,
+			Extra: map[string]interface{}{
+				"CookieUserID": cookieUserID,
+				"QueryUserID":  userID,
+			},
+			Err: "User does not have permission to access route",
+		})
+
+		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
+		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
 		return
 	}
 
@@ -206,7 +266,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	authToken, csrfToken, err := jwt.Tokens(usersession)
+	authToken, refreshToken, csrfToken, err := jwt.Tokens(usersession)
 	if err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/login - LoginUser()",
@@ -222,13 +282,14 @@ func LoginUser(c *gin.Context) {
 
 	// TODO: Change the domain name and add correct maxAge time
 	authCookieMaxAge := 24 * 60 * conf.App.AuthCookieAge
+	refreshCookieMaxAge := 24 * 60 * conf.App.RefreshCookieAge
 	c.SetCookie(conf.App.AuthCookieName, authToken, authCookieMaxAge, "/", conf.App.Domain, false, true)
+	c.SetCookie(conf.App.RefreshCookieName, refreshToken, refreshCookieMaxAge, "/", conf.App.Domain, false, true)
+	c.SetCookie("uid", strconv.FormatUint(uint64(userDb.ID), 10), authCookieMaxAge, "/", conf.App.Domain, false, false)
 	c.Header("X-CSRF-Token", csrfToken)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
-		"errors": make([]string, 0),
-		"data":   gin.H{"firstname": userDb.FirstName},
 	})
 }
 
@@ -317,6 +378,38 @@ func SignUpUser(c *gin.Context) {
 		return
 	}
 
+	var plan models.Plan
+	plan.PlanType = models.PlanTypeFreeTrial
+	if err := plan.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"Detail": "Free Trial Plan Not Found"},
+			Err:   err.Error(),
+		})
+	}
+
+	if plan.ID != 0 {
+		var userPlan models.UserPlan
+		userPlan.UserID = user.ID
+		userPlan.PlanID = plan.ID
+		userPlan.Active = true
+		userPlan.StartDate = time.Now()
+		userPlan.ExpiryDate = time.Now().Add(time.Hour * 24 * 30)
+
+		if err := userPlan.Save(); err != nil {
+			logger.Log(logger.Fields{
+				Loc:  "/signup - SignUpUser()",
+				Code: errors.InternalServerError.Code,
+				Extra: map[string]interface{}{
+					"UserID": userPlan.UserID,
+					"Detail": "Adding user plan with free trial failed",
+				},
+				Err: err.Error(),
+			})
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data":   make([]string, 0),
@@ -347,6 +440,96 @@ func AllUsers(c *gin.Context) {
 		"data": gin.H{
 			"users": users,
 		},
+	})
+}
+
+// ChangePassword will authenticate the users token and change their password
+func ChangePassword(c *gin.Context) {
+	// conf := config.GetConfig()
+
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/user/private/changepassword - ChangePassword()",
+			Extra: map[string]interface{}{
+				"UserID": cookieUserID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	var user models.User
+	user.ID = cookieUserID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/private/changepassword - ChangePassword()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	type ChangePassword struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+
+	changePassword := ChangePassword{}
+
+	if err := c.BindJSON(&changePassword); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/private/changepassword - ChangePassword()",
+			Code:  errors.InvalidForm.Code,
+			Extra: map[string]interface{}{"UserID": cookieUserID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePassword.CurrentPassword)); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/private/changepassword - ChangePassword()",
+			Code:  errors.WrongPassword.Code,
+			Extra: map[string]interface{}{"UserID": cookieUserID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.WrongPassword.Status, errors.WrongPassword)
+		return
+	}
+
+	pw, err := bcrypt.GenerateFromPassword([]byte(changePassword.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/private/changepassword - ChangePassword()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": cookieUserID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	user.Password = string(pw)
+	if err := user.Save(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user/private/changepassword - ChangePassword()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"errors": make([]string, 0),
+		"data":   make([]string, 0),
 	})
 }
 
@@ -851,46 +1034,6 @@ func CancelSubscription(c *gin.Context) {
 
 // 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
 // 		c.AbortWithStatusJSON(errors.EmailNotFound.Status, errors.EmailNotFound)
-// 		return
-// 	}
-
-// 	// Send email here
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"status": 200,
-// 		"errors": make([]string, 0),
-// 		"data":   make([]string, 0),
-// 	})
-// }
-
-// // ChangePassword will authenticate the users token and change their password
-// func ChangePassword(c *gin.Context) {
-// 	db := db.GetDB()
-// 	email := c.PostForm("email")
-// 	var user models.User
-
-// 	// _, err := jwt.Validate(c)
-// 	// if err != nil {
-// 	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-// 	// 		"status": 401,
-// 	// 		"errors": gin.H{
-// 	// 			"title":  "Invalid Token",
-// 	// 			"detail": "Token provided in auth header is not valid",
-// 	// 		},
-// 	// 		"data": make([]string, 0),
-// 	// 	})
-// 	// 	return
-// 	// }
-
-// 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-// 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-// 			"status": 404,
-// 			"errors": gin.H{
-// 				"title":  "Email Not Found",
-// 				"detail": "No matching email address was found",
-// 			},
-// 			"data": make([]string, 0),
-// 		})
 // 		return
 // 	}
 

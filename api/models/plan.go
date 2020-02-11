@@ -16,6 +16,7 @@ type PlanType string
 var (
 	PlanTypePayAsYouGo   PlanType = "PAYG"
 	PlanTypeSubscription PlanType = "SUB"
+	PlanTypeFreeTrial    PlanType = "FREE"
 )
 
 // Plan holds the detilas for a given vpn plan on offer

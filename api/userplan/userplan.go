@@ -1,6 +1,7 @@
 package userplan
 
 import (
+	"eirevpn/api/config"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
@@ -13,9 +14,11 @@ import (
 
 // UserPlan fetches a plan by ID
 func UserPlan(c *gin.Context) {
-	userPlanID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	conf := config.GetConfig()
+
+	userID, _ := strconv.ParseUint(c.Param("userid"), 10, 64)
 	var userplan models.UserPlan
-	userplan.ID = uint(userPlanID)
+	userplan.UserID = uint(userID)
 	if err := userplan.Find(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/userplans/:id - UserPlan()",
@@ -27,11 +30,65 @@ func UserPlan(c *gin.Context) {
 		return
 	}
 
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/userplans/:id - UserPlan()",
+			Extra: map[string]interface{}{
+				"UserID": userID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+	if cookieUserID.(uint) != userplan.UserID {
+		logger.Log(logger.Fields{
+			Loc:  "/userplans/:id - UserPlan()",
+			Code: errors.ProtectedRouted.Code,
+			Extra: map[string]interface{}{
+				"CookieUserID": cookieUserID,
+				"QueryUserID":  userID,
+			},
+			Err: "User does not have permission to access route",
+		})
+
+		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
+		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
+		return
+	}
+
+	type UserPlanCustom struct {
+		models.UserPlan
+		PlanType models.PlanType `json:"plan_type"`
+		PlanName string          `json:"plan_name"`
+	}
+
+	var plan models.Plan
+	plan.ID = userplan.PlanID
+	if err := plan.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/userplans/:id - UserPlan()",
+			Code:  errors.PlanNotFound.Code,
+			Extra: map[string]interface{}{"PlanID": userplan.PlanID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.PlanNotFound.Status, errors.PlanNotFound)
+		return
+	}
+
+	respUserPlan := UserPlanCustom{
+		UserPlan: userplan,
+		PlanType: plan.PlanType,
+		PlanName: plan.Name,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"errors": make([]string, 0),
 		"data": gin.H{
-			"userplan": userplan,
+			"userplan": respUserPlan,
 		},
 	})
 
@@ -90,9 +147,9 @@ func CreateUserPlan(c *gin.Context) {
 // DeleteUserPlan deletes a given users userplan. It will not delete a userplan fully however,
 // it will just set a DeletedAt datetime on the record
 func DeleteUserPlan(c *gin.Context) {
-	userPlanID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var userplan models.UserPlan
-	userplan.ID = uint(userPlanID)
+	userplan.UserID = uint(userID)
 	if err := userplan.Find(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/userplans/delete/:id - DeleteUserPlan()",
@@ -124,7 +181,7 @@ func DeleteUserPlan(c *gin.Context) {
 func UpdateUserPlan(c *gin.Context) {
 	userPlanID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var userplan models.UserPlan
-	userplan.ID = uint(userPlanID)
+	userplan.UserID = uint(userPlanID)
 
 	type UserPlanUpdates struct {
 		Active     string `json:"active" binding:"required"`
@@ -137,7 +194,7 @@ func UpdateUserPlan(c *gin.Context) {
 		logger.Log(logger.Fields{
 			Loc:   "/userplans/update/:id - UpdateUserPlan()",
 			Code:  errors.UserPlanNotFound.Code,
-			Extra: map[string]interface{}{"UserPlanID": c.Param("id")},
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.UserPlanNotFound.Status, errors.UserPlanNotFound)
@@ -191,7 +248,7 @@ func AllUserPlans(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data": gin.H{
-			"plans": plans,
+			"userplans": plans,
 		},
 	})
 }

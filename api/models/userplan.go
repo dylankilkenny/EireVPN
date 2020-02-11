@@ -40,7 +40,9 @@ func (up *UserPlan) Save() error {
 }
 
 func (up *UserPlan) Create() error {
-
+	if err := up.DeleteAll(); err != nil {
+		return err
+	}
 	if err := db().Create(&up).Error; err != nil {
 		return err
 	}
@@ -49,6 +51,14 @@ func (up *UserPlan) Create() error {
 
 func (up *UserPlan) Delete() error {
 	if err := db().Delete(&up).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteAll removes any existing user sessions
+func (up *UserPlan) DeleteAll() error {
+	if err := db().Delete(UserPlan{}, "user_id = ?", up.UserID).Error; err != nil {
 		return err
 	}
 	return nil
