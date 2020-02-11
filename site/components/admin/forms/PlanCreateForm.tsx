@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import FormGroup from './FormGroup';
-import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import FormInput from './FormInput';
+import FormDropdown from './FormDropdown';
+import ButtonMain from '../../ButtonMain';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 
@@ -29,31 +31,42 @@ const UserCreateForm: React.FC<PlanCreateFormProps> = ({ error, HandleSave }) =>
   };
 
   return (
-    <div className="server-create">
-      <Form>
-        <div className="button-toolbar">
-          <Button onClick={handleSaveClick} variant="outline-secondary">
-            Save
-          </Button>
-        </div>
-        <ErrorMessage show={hasError} error={error} />
-        <Form.Row>
-          <FormGroup name="name" label="Name" value={name} onChange={setName} />
-          <FormGroup name="amount" label="Amount" value={amountString} onChange={setAmount} />
-        </Form.Row>
-        <Form.Row>
-          <FormGroup name="interval" label="Interval" value={interval} onChange={setInterval} />
-          <FormGroup
-            name="intervalCount"
-            label="Interval Count"
-            value={intervalCountString}
-            onChange={setIntervalCount}
-          />
-        </Form.Row>
-        <Form.Row>
-          <FormGroup name="plantType" label="Plant Type" value={plan_type} onChange={setPlanType} />
-        </Form.Row>
-      </Form>
+    <div>
+      <Card>
+        <Card.Body>
+          <Card.Title className="card-title-form">
+            Create Plan
+            <div className="button-toolbar">
+              <ButtonMain onClick={handleSaveClick} value="Save" />
+            </div>
+          </Card.Title>
+          <Form>
+            <ErrorMessage show={hasError} error={error} />
+            <Form.Row>
+              <FormInput name="name" label="Name" value={name} onChange={setName} />
+              <FormInput name="amount" label="Amount" value={amountString} onChange={setAmount} />
+            </Form.Row>
+            <Form.Row>
+              <FormInput name="interval" label="Interval" value={interval} onChange={setInterval} />
+              <FormInput
+                name="intervalCount"
+                label="Interval Count"
+                value={intervalCountString}
+                onChange={setIntervalCount}
+              />
+            </Form.Row>
+            <Form.Row>
+              <FormDropdown
+                name="plantType"
+                label="Plant Type"
+                value={plan_type}
+                options={['PAYG', 'SUB', 'FREE']}
+                onChange={setPlanType}
+              />
+            </Form.Row>
+          </Form>
+        </Card.Body>
+      </Card>
     </div>
   );
 };

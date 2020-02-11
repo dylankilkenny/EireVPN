@@ -1,4 +1,4 @@
-import { HeaderUser, HeaderAdmin, HeaderLogin } from './Header';
+import { HeaderUser, HeaderDashboard, HeaderLogin } from './Header';
 import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -40,9 +40,31 @@ const LayoutLogin: React.FC<Props> = props => (
         <Col sm={12} md={8} lg={6}>
           {props.children}
         </Col>
-        <Col sm={12} md={2} lg={6}></Col>
+        <Col sm={12} md={2} lg={3}></Col>
       </Row>
     </Container>
+  </div>
+);
+
+interface UserDashProps {
+  children: React.ReactNode;
+}
+
+const LayoutUserDash: React.FC<UserDashProps> = ({ children }) => (
+  <div>
+    <HtmlHead />
+    <HeaderDashboard />
+    <div className="account-layout">
+      <Container fluid>
+        <Row>
+          <Col sm={12} md={1} lg={1} />
+          <Col sm={12} md={10} lg={10}>
+            <div className="account-dash">{children}</div>
+          </Col>
+          <Col sm={12} md={1} lg={1} />
+        </Row>
+      </Container>
+    </div>
   </div>
 );
 
@@ -54,16 +76,20 @@ interface AdminDashProps {
 const LayoutAdminDash: React.FC<AdminDashProps> = ({ AdminSidePanel, children }) => (
   <div>
     <HtmlHead />
-    <HeaderAdmin />
-    <Container fluid>
-      <Row>
-        <Col sm={12} md={3} lg={2}>
-          {AdminSidePanel}
-        </Col>
-        <Col>{children}</Col>
-      </Row>
-    </Container>
+    <HeaderDashboard />
+    <div className="admin-layout">
+      <Container fluid>
+        <Row>
+          <Col sm={12} md={3} lg={2}>
+            {AdminSidePanel}
+          </Col>
+          <Col>
+            <div className="admin-dash">{children}</div>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   </div>
 );
 
-export { LayoutLanding, LayoutLogin, LayoutAdminDash };
+export { LayoutLanding, LayoutLogin, LayoutAdminDash, LayoutUserDash };

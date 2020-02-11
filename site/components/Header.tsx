@@ -9,6 +9,67 @@ const handleLogout = async () => {
   Auth.Logout();
 };
 
+const HeaderBase: React.FC<React.ReactNode> = ({ children }) => {
+  return (
+    <Navbar className="navbar-cust header" expand="lg">
+      <HeaderBrand />
+      <Navbar.Toggle className="navbar-toggler-custom" />
+      <Navbar.Collapse className="justify-content-end">{children}</Navbar.Collapse>
+    </Navbar>
+  );
+};
+
+const HeaderDashboard = () => {
+  const [loginStatus, setLoginStatus] = useState('Login');
+  useEffect(() => {
+    setLoginStatus(Auth.IsLoggedIn() ? 'Logout' : 'Login');
+  });
+
+  return (
+    <HeaderBase>
+      <Navbar.Text onClick={handleLogout}>
+        <a href="#">
+          <div className="header-link">{loginStatus}</div>
+        </a>
+      </Navbar.Text>
+      <style jsx>{`
+        a {
+          text-decoration: none;
+        }
+        a:hover {
+          opacity: 0.6;
+        }
+      `}</style>
+    </HeaderBase>
+  );
+};
+
+const HeaderUser = () => {
+  const [loginStatus, setLoginStatus] = useState('Login');
+  const [loginLink, setLoginLink] = useState('Login');
+  useEffect(() => {
+    setLoginStatus(Auth.IsLoggedIn() ? 'My Account' : 'Login');
+    setLoginLink(Auth.IsLoggedIn() ? '/account' : '/login');
+  });
+
+  return (
+    <HeaderBase>
+      <NavLink href="/about" text="About" />
+      <NavLink href="/products" text="Products" />
+      <NavLink href={loginLink} text={loginStatus} />
+      <Navbar.Text>
+        <Link href="/signup">
+          <Button className="btn-landing sm">Try Free</Button>
+        </Link>
+      </Navbar.Text>
+    </HeaderBase>
+  );
+};
+
+const HeaderLogin = () => {
+  return <HeaderBase />;
+};
+
 const HeaderBrand = () => {
   return (
     <Navbar.Brand>
@@ -59,60 +120,4 @@ const NavLink: React.FC<NavLinkProps> = ({ href, text }) => {
   );
 };
 
-const HeaderAdmin = () => {
-  const [loginStatus, setLoginStatus] = useState('Login');
-  useEffect(() => {
-    setLoginStatus(Auth.IsLoggedIn() ? 'Logout' : 'Login');
-  });
-
-  return (
-    <Navbar>
-      <HeaderBrand />
-      <Navbar.Toggle />
-      <Navbar.Collapse className="justify-content-end">
-        <Navbar.Text onClick={handleLogout}>
-          <a href="#">{loginStatus}</a>
-        </Navbar.Text>
-      </Navbar.Collapse>
-    </Navbar>
-  );
-};
-
-const HeaderUser = () => {
-  const [loginStatus, setLoginStatus] = useState('Login');
-  useEffect(() => {
-    setLoginStatus(Auth.IsLoggedIn() ? 'Logout' : 'Login');
-  });
-
-  return (
-    <Navbar className="header" expand="lg">
-      <HeaderBrand />
-      <Navbar.Toggle className="navbar-toggler-custom" />
-      <Navbar.Collapse className="justify-content-end">
-        <NavLink href="/about" text="About" />
-        <NavLink href="/products" text="Products" />
-        <NavLink href="/login" text={loginStatus} />
-        <Navbar.Text>
-          <Button className="btn-landing sm">Get Started</Button>
-        </Navbar.Text>
-      </Navbar.Collapse>
-    </Navbar>
-  );
-};
-
-const HeaderLogin = () => {
-  const [loginStatus, setLoginStatus] = useState('Login');
-  useEffect(() => {
-    setLoginStatus(Auth.IsLoggedIn() ? 'Logout' : 'Login');
-  });
-
-  return (
-    <Navbar expand="lg">
-      <HeaderBrand />
-      <Navbar.Toggle />
-      <Navbar.Collapse className="justify-content-end"></Navbar.Collapse>
-    </Navbar>
-  );
-};
-
-export { HeaderAdmin, HeaderUser, HeaderLogin };
+export { HeaderDashboard, HeaderUser, HeaderLogin };

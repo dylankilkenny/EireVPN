@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
+import Card from 'react-bootstrap/Card';
 import Settings from '../../../interfaces/settings';
-import Button from 'react-bootstrap/Button';
+import ButtonMain from '../../ButtonMain';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 import FormDropdown from './FormDropdown';
@@ -34,47 +35,52 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ settings, error, success, H
 
   return (
     <div>
-      <div className="button-toolbar">
-        <Button onClick={handleSaveClick} className="btn-save" variant="outline-secondary">
-          Save
-        </Button>
-      </div>
-      <ErrorMessage show={hasError} error={error} />
-      <SuccessMessage show={success} message="Settings Updated Successfully" />
-      <Form>
-        <Form.Row>
-          <FormDropdown
-            name="enableCsrf"
-            label="Enable CSRF"
-            value={enableCsrf}
-            options={['true', 'false']}
-            onChange={setEnableCsrf}
-          />
-          <FormDropdown
-            name="enableSubscriptions"
-            label="Enable Subscriptions"
-            value={enableSubscriptions}
-            options={['true', 'false']}
-            onChange={setEnableSubs}
-          />
-        </Form.Row>
-        <Form.Row>
-          <FormDropdown
-            name="enableAuth"
-            label="Enable Auth"
-            value={enableAuth}
-            options={['true', 'false']}
-            onChange={setEnableAuth}
-          />
-          <FormDropdown
-            name="enableStripe"
-            label="Enable Stripe"
-            value={enableStripe}
-            options={['true', 'false']}
-            onChange={setEnableStripe}
-          />
-        </Form.Row>
-      </Form>
+      <Card>
+        <Card.Body>
+          <Card.Title className="card-title-form">
+            Edit Settings
+            <div className="button-toolbar">
+              <ButtonMain onClick={handleSaveClick} value="Save" />
+            </div>
+          </Card.Title>
+          <ErrorMessage show={hasError} error={error} />
+          <SuccessMessage show={success} message="Settings Updated Successfully" />
+          <Form>
+            <Form.Row>
+              <FormDropdown
+                name="enableCsrf"
+                label="Enable CSRF"
+                value={enableCsrf}
+                options={['true', 'false']}
+                onChange={setEnableCsrf}
+              />
+              <FormDropdown
+                name="enableSubscriptions"
+                label="Enable Subscriptions"
+                value={enableSubscriptions}
+                options={['true', 'false']}
+                onChange={setEnableSubs}
+              />
+            </Form.Row>
+            <Form.Row>
+              <FormDropdown
+                name="enableAuth"
+                label="Enable Auth"
+                value={enableAuth}
+                options={['true', 'false']}
+                onChange={setEnableAuth}
+              />
+              <FormDropdown
+                name="enableStripe"
+                label="Enable Stripe"
+                value={enableStripe}
+                options={['true', 'false']}
+                onChange={setEnableStripe}
+              />
+            </Form.Row>
+          </Form>
+        </Card.Body>
+      </Card>
     </div>
   );
 };

@@ -8,7 +8,7 @@ import Button from 'react-bootstrap/Button';
 export default function LandingPage() {
   return (
     <LayoutLanding>
-      <div>
+      <div className="landing-page">
         <Container>
           <Row>
             <Col xs={12} md={6}>
@@ -17,7 +17,7 @@ export default function LandingPage() {
                 Safely secure your browsing and enjoy unrestricted access worldwide.
               </p>
               <Button className="btn-landing" variant="primary">
-                Get Started
+                Try Free
               </Button>
             </Col>
             <Col xs={12} md={6}>

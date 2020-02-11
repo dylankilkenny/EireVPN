@@ -6,7 +6,9 @@ interface FormDropdownProps {
   name: string;
   label: string;
   value: string;
-  options: string[];
+  className?: string;
+  options?: string[];
+  optionsKV?: { value: string; name: string }[];
   onChange?: (value: React.SetStateAction<string>) => void;
 }
 
@@ -17,12 +19,33 @@ const FormGroup: React.FC<FormDropdownProps> = ({
   label,
   value,
   options,
+  optionsKV,
+  className,
   onChange
 }): JSX.Element => {
+  let DropdownOptions;
+  if (options) {
+    options.unshift('...');
+    DropdownOptions = options.map((val, i) => (
+      <option key={i} value={val}>
+        {val}
+      </option>
+    ));
+  } else if (optionsKV) {
+    optionsKV.unshift({ value: '', name: '...' });
+    DropdownOptions = optionsKV.map((val, i) => (
+      <option key={i} value={val.value}>
+        {val.name}
+      </option>
+    ));
+  } else {
+    DropdownOptions = <div />;
+  }
   return (
     <Form.Group as={Col} controlId={name}>
       <Form.Label sm="2">{label}</Form.Label>
       <Form.Control
+        className={`${className}`}
         as="select"
         value={value}
         name={name}
@@ -32,11 +55,7 @@ const FormGroup: React.FC<FormDropdownProps> = ({
           }
         }}
       >
-        {options.map((val, i) => (
-          <option key={i} value={val}>
-            {val}
-          </option>
-        ))}
+        {DropdownOptions}
       </Form.Control>
     </Form.Group>
   );

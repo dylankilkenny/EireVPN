@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import FormInput from './FormInput';
-import Card from 'react-bootstrap/Card';
-import ErrorMessage from '../../ErrorMessage';
-import APIError from '../../../interfaces/error';
+import User from '../../../interfaces/user';
 import ButtonMain from '../../ButtonMain';
+import Card from 'react-bootstrap/Card';
+import FormInput from '../../admin/forms/FormInput';
 
-interface UserCreateFormProps {
+interface UserEditFormProps {
+  user: User;
   HandleSave: (body: string) => Promise<void>;
-  error: APIError;
 }
 
-const UserCreateForm: React.FC<UserCreateFormProps> = ({ HandleSave, error }) => {
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const hasError = !!error;
+const UserForm: React.FC<UserEditFormProps> = ({ user, HandleSave }) => {
+  const [firstname, setFirstname] = useState(user.firstname);
+  const [lastname, setLastname] = useState(user.lastname);
+  const [email, setEmail] = useState(user.email);
 
   const handleSaveClick = () => {
-    HandleSave(JSON.stringify({ firstname, lastname, email, password }));
+    HandleSave(JSON.stringify({ firstname, lastname, email }));
   };
 
   return (
@@ -28,13 +24,12 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ HandleSave, error }) =>
       <Card>
         <Card.Body>
           <Card.Title className="card-title-form">
-            Create User
+            Details
             <div className="button-toolbar">
               <ButtonMain onClick={handleSaveClick} value="Save" />
             </div>
           </Card.Title>
           <Form>
-            <ErrorMessage show={hasError} error={error} />
             <Form.Row>
               <FormInput
                 name="firstname"
@@ -45,13 +40,12 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ HandleSave, error }) =>
               <FormInput name="lastname" label="Lastname" value={lastname} onChange={setLastname} />
             </Form.Row>
             <Form.Row>
-              <FormInput name="email" label="Email" value={email} onChange={setEmail} />
               <FormInput
-                type="password"
-                name="password"
-                label="Password"
-                value={password}
-                onChange={setPassword}
+                className="w-75"
+                name="email"
+                label="Email"
+                value={email}
+                onChange={setEmail}
               />
             </Form.Row>
           </Form>
@@ -61,4 +55,4 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ HandleSave, error }) =>
   );
 };
 
-export default UserCreateForm;
+export default UserForm;

@@ -2,30 +2,45 @@ import React, { useState, useEffect } from 'react';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
-import SuccessMessage from '../../SuccessMessage';
 import APIError from '../../../interfaces/error';
 import ButtonMain from '../../ButtonMain';
 import FormInput from './FormInput';
 
-interface LoginFormProps {
-  signedup?: boolean;
-  error: APIError;
-  HandleLogin: (body: string) => Promise<void>;
+interface SignupFormProps {
+  error: APIError | undefined;
+  HandleSignup: (body: string) => Promise<void>;
 }
 
 type TFormEvent = React.FormEvent<HTMLFormElement>;
 
-const LoginForm: React.FC<LoginFormProps> = ({ HandleLogin, signedup, error }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const LoginForm: React.FC<SignupFormProps> = ({ error, HandleSignup }) => {
+  const [err, setError] = useState(error);
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+  const [confirmPassword, setConfirmPassword] = useState();
   const [validated, setValidated] = useState(false);
+
+  // update err with the response from the server if there is any
+  useEffect(() => {
+    setError(error);
+  }, [error]);
 
   const handleSubmit = (event: TFormEvent) => {
     event.stopPropagation();
     event.preventDefault();
     const form = event.currentTarget;
     if (form.checkValidity() === true) {
-      HandleLogin(JSON.stringify({ email, password }));
+      if (password == confirmPassword) {
+        setError(undefined);
+        HandleSignup(JSON.stringify({ email, password }));
+      } else {
+        setError({
+          status: 0,
+          code: '',
+          title: '',
+          detail: 'Passwords do not match'
+        });
+      }
     }
     // this sets form validation feedback to visible
     setValidated(true);
@@ -35,9 +50,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ HandleLogin, signedup, error }) =
     <Card style={{ padding: 20 }}>
       <Card.Body>
         <Card.Title className="card-title-form">
-          <h2>Login</h2>
+          <h2>Create an account</h2>
         </Card.Title>
-        <SuccessMessage show={!!signedup} message="Sign up complete, please log in" />
         <Form noValidate validated={validated} onSubmit={(e: TFormEvent) => handleSubmit(e)}>
           <Form.Row>
             <FormInput
@@ -62,8 +76,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ HandleLogin, signedup, error }) =
               feebackType="invalid"
               feebackValue="Required"
             />
+            <FormInput
+              required
+              type="password"
+              name="password"
+              label="Confirm Password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              feebackType="invalid"
+              feebackValue="Required"
+            />
           </Form.Row>
-          <ErrorMessage show={!!error} error={error} />
+          <ErrorMessage show={!!err} error={err} />
           <ButtonMain type="submit" value="Submit" />
         </Form>
       </Card.Body>

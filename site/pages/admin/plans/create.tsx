@@ -10,6 +10,7 @@ export default function PlanCreate(): JSX.Element {
   const [error, setError] = useState();
 
   async function HandleSave(body: string) {
+    console.log(body);
     const res = await API.CreatePlan(body);
     if (res.status == 200) {
       router.push('/admin/plans');

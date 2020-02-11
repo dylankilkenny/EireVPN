@@ -1,112 +1,301 @@
 /* Header */
-body {
+/* body {
     background-color: #004643;
+} */
+
+html {
+  height: 100%;
 }
 
-.header {
-    padding-left: 40px;
-    padding-right: 40px;
+.navbar-cust {
+  padding-bottom: 0px;
+  background-color: #004643;
+  padding-left: 40px;
+  padding-right: 40px;
 }
 
 .branding {
-    font-family: 'Fredoka One', cursive;
-    color: #f9bc60;
-    letter-spacing: 0.06em;
+  font-family: 'Fredoka One', cursive;
+  color: #f9bc60;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
 }
 
 .header-link {
-    font-family: 'Helvetica';
-    font-size: 1.3em;
-    font-weight: 500;
-    margin-left: 15px;
-    margin-right: 15px;
-    font-weight: 500;
-    color: #fffffe;
-    letter-spacing: 0.04em;
+  font-family: 'Helvetica';
+  font-size: 1.1em;
+  font-weight: 500;
+  margin-left: 15px;
+  margin-right: 15px;
+  font-weight: 500;
+  color: #fffffe;
+  letter-spacing: 0.04em;
 }
 
 .badge-custom {
-    font-size: 20px;
-    font-family: Helvetica;
-    padding-top: 0.2em;
-    padding-right: 0.2em;
-    padding-left: 0.2em;
-    padding-bottom: 0.1em;
-    margin-left: 0.7em;
-    margin-bottom: 0.5em;
-    letter-spacing: 0.02em;
-    background-color: #abd1c6;
-    color: #004643;
-    vertical-align: middle;
+  font-size: 20px;
+  font-family: Helvetica;
+  padding-top: 0.2em;
+  padding-right: 0.2em;
+  padding-left: 0.2em;
+  padding-bottom: 0.1em;
+  margin-left: 0.7em;
+  margin-bottom: 0.5em;
+  letter-spacing: 0.02em;
+  background-color: #abd1c6;
+  color: #004643;
+  vertical-align: middle;
 }
 
 /* Hamburger Icons */
 .navbar-light button.navbar-toggler.collapsed span.navbar-toggler-icon {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
 }
 
 .navbar-light button.navbar-toggler span.navbar-toggler-icon {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='3' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
 }
 
-/**/
+/*Admin*/
+.admin-side-panel {
+  padding-top: 20px;
+  border-right: 0px solid grey;
+  box-shadow: 6px 0 5px -5px #00000026;
+  height: 91vh;
+}
+
+.admin-side-panel ul {
+  padding-left: 20px;
+}
+
+.admin-side-panel li {
+  font-size: 17px;
+  color: grey;
+}
+
+.admin-dash {
+  padding-top: 20px;
+  height: 100%;
+}
+
+.account-dash {
+  padding-top: 20px;
+  height: 100%;
+}
+
+.account-layout {
+  /* height: 100vh; */
+}
+
+/*Login*/
+
+.login-cont {
+  margin-top: 70px;
+}
+
+/*Signup*/
+
+.signup-cont {
+  margin-top: 40px;
+}
+
+/*Landing*/
+
+.landing-page {
+  background-color: #004643;
+  height: 100vh;
+}
 
 .btn-landing {
-    background-color: #e16162;
-    border-color: #e16162;
-    color: #fffffe;
-    font-size: 25px;
-    letter-spacing: 0.03em;
+  background-color: #e16162;
+  border-color: #e16162;
+  color: #fffffe;
+  font-size: 25px;
+  letter-spacing: 0.03em;
 }
 
 .btn-landing.sm {
-    background-color: #e16162;
-    border-color: #e16162;
-    color: #fffffe;
-    font-size: 15px;
-    letter-spacing: 0.03em;
-    margin-left: 15px;
+  background-color: #e16162;
+  border-color: #e16162;
+  color: #fffffe;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  margin-left: 15px;
 }
 
 .btn-landing:hover {
-    color: #fffffe;
-    background-color: #e16162;
-    opacity: 0.8;
-    border-color: #e16162;
-
+  color: #fffffe;
+  background-color: #e16162;
+  opacity: 0.8;
+  border-color: #e16162;
 }
 
 .headline {
-    font-family: 'Helvetica';
-    color: #fffffe;
-    font-size: 50px;
-    letter-spacing: 0.03em;
-    padding-top: 90px;
+  font-family: 'Helvetica';
+  color: #fffffe;
+  font-size: 50px;
+  letter-spacing: 0.03em;
+  padding-top: 90px;
 }
 
 .p-landing {
-    color: #abd1c6;
-    font-size: 30px;
-    letter-spacing: 0.03em;
+  color: #abd1c6;
+  font-size: 30px;
+  letter-spacing: 0.03em;
 }
 
 .button-toolbar {
-    width: 100%;
-    height: 3em;
-    margin-bottom: 8px;
+  float: right;
+}
+
+.crud-toolbar {
+  width: 100%;
+  height: 3em;
+  margin-bottom: 8px;
 }
 
 .button-toolbar .btn {
-    margin-left: 4px;
-    margin-right: 4px;
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .server-create {
-    float: left;
-    width: 80%;
+  float: left;
+  width: 80%;
 }
 
-
 .table-admin-list {
-    cursor: pointer;
+  cursor: pointer;
+}
+
+.card-title-form {
+  margin-bottom: 1.75rem;
+}
+
+.active-dropdown {
+  width: 50%;
+}
+
+.small-inputs {
+  width: 50%;
+}
+
+.btn-main {
+  color: #004643;
+}
+
+.btn-main:hover {
+  color: #fffffe;
+  background-color: #004643;
+  opacity: 0.8;
+  border-color: #004643;
+}
+
+.card {
+  box-shadow: 0px 0 5px 1px #00000026;
+  border: 0px;
+}
+
+.dashboard-heading {
+  color: #626262;
+}
+
+.dashboard-heading svg {
+  float: left;
+  margin-top: 3px;
+}
+
+.dashboard-heading div {
+  float: left;
+  padding-left: 10px;
+}
+
+.details-edit {
+  color: #004643;
+  float: right;
+  cursor: pointer;
+}
+
+.details-edit svg {
+  margin-bottom: 5px;
+}
+
+.details-edit:hover {
+  opacity: 0.6;
+}
+
+.details-edit div {
+  float: right;
+  padding-left: 10px;
+}
+
+.details-card label {
+  margin-bottom: 0px;
+  font-weight: 600;
+}
+
+.details-card label:first-of-type+div {
+  margin-bottom: 20px;
+}
+
+.sub-card label {
+  margin-bottom: -5px;
+  font-weight: 600;
+}
+
+.sub-card label:first-of-type+div {
+  margin-bottom: 20px;
+}
+
+.sub-label {
+  float: right;
+}
+
+.sub-label svg {
+  margin-bottom: 5px;
+}
+
+.sub-label div {
+  float: right;
+  padding-left: 10px;
+}
+
+.dash-card {
+  margin-bottom: 20px;
+}
+
+.sub-status {
+  float: right;
+}
+
+.empty-field {
+  color: #4f4f4f4d;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+.w-75 {
+  width: 75%;
+}
+
+.details-back-btn {
+  color: #004643;
+}
+
+.details-back-btn:hover {
+  color: #004643;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.details-back-btn svg {
+  float: left;
+  margin-top: 4px;
+}
+
+.details-back-btn div {
+  float: left;
+  padding-left: 5px;
 }

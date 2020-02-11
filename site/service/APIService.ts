@@ -88,6 +88,10 @@ export default {
     return postRequest(`${process.env.apiDomain}/api/user/login`, body);
   },
 
+  async Signup(body: string) {
+    return postRequest(`${process.env.apiDomain}/api/user/signup`, body);
+  },
+
   async Logout() {
     return getRequest(`${process.env.apiDomain}/api/user/logout`);
   },
@@ -108,12 +112,20 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/private/servers`);
   },
 
+  async GetUserPlansList() {
+    return getRequest(`${process.env.apiDomain}/api/protected/userplans`);
+  },
+
   async GetServerByID(id: string) {
     return getRequest(`${process.env.apiDomain}/api/protected/servers/${id}`);
   },
 
   async GetUserByID(id: string) {
-    return getRequest(`${process.env.apiDomain}/api/protected/user/${id}`);
+    return getRequest(`${process.env.apiDomain}/api/private/user/get/${id}`);
+  },
+
+  async GetUserPlanByUserID(id: string) {
+    return getRequest(`${process.env.apiDomain}/api/private/userplans/${id}`);
   },
 
   async GetPlanByID(id: string) {
@@ -125,7 +137,11 @@ export default {
   },
 
   async UpdateUser(id: string, body: string) {
-    return putRequest(`${process.env.apiDomain}/api/protected/user/update/${id}`, body);
+    return putRequest(`${process.env.apiDomain}/api/private/user/update/${id}`, body);
+  },
+
+  async UpdateUserPlan(user_id: string, body: string) {
+    return putRequest(`${process.env.apiDomain}/api/protected/userplans/update/${user_id}`, body);
   },
 
   async UpdatePlan(id: string, body: string) {
@@ -136,12 +152,20 @@ export default {
     return putRequest(`${process.env.apiDomain}/api/protected/settings/update`, body);
   },
 
+  async UpdatePassword(body: string) {
+    return putRequest(`${process.env.apiDomain}/api/private/user/changepassword`, body);
+  },
+
   async CreateServer(body: FormData) {
     return postRequest(`${process.env.apiDomain}/api/protected/servers/create`, body);
   },
 
   async CreateUser(body: string) {
     return postRequest(`${process.env.apiDomain}/api/user/signup`, body);
+  },
+
+  async CreateUserPlan(body: string) {
+    return postRequest(`${process.env.apiDomain}/api/protected/userplans/create`, body);
   },
 
   async CreatePlan(body: string) {
@@ -154,6 +178,10 @@ export default {
 
   async DeleteUser(id: string) {
     return deleteRequest(`${process.env.apiDomain}/api/protected/users/delete/${id}`);
+  },
+
+  async DeleteUserPlan(user_id: string) {
+    return deleteRequest(`${process.env.apiDomain}/api/protected/userplans/delete/${user_id}`);
   },
 
   async DeletePlan(id: string) {

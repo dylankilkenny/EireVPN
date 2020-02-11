@@ -7,8 +7,8 @@ import API from '../../service/APIService';
 export default function LoginPage(): JSX.Element {
   const [error, setError] = useState();
 
-  async function HandleLogin(email: string, password: string) {
-    const res = await API.Login(JSON.stringify({ email, password }));
+  async function HandleLogin(body: string) {
+    const res = await API.Login(body);
     if (res.status == 200) {
       Router.push('/admin/users');
     } else {
@@ -18,8 +18,9 @@ export default function LoginPage(): JSX.Element {
 
   return (
     <LayoutLogin>
-      <h2>Login</h2>
-      <LoginForm error={error} HandleLogin={HandleLogin} />
+      <div className="login-cont">
+        <LoginForm error={error} HandleLogin={HandleLogin} />
+      </div>
     </LayoutLogin>
   );
 }

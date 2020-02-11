@@ -3,11 +3,16 @@ import Link from 'next/link';
 
 export default function AdminSidePanel(): JSX.Element {
   return (
-    <div>
+    <div className="admin-side-panel">
       <ul>
         <li>
           <Link href="/admin/users">
             <a>Users</a>
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/userplans">
+            <a>User Plans</a>
           </Link>
         </li>
         <li>
@@ -28,6 +33,13 @@ export default function AdminSidePanel(): JSX.Element {
         <style jsx>{`
           ul {
             list-style-type: none;
+          }
+          a {
+            text-decoration: none;
+            color: #5f6368;
+          }
+          a:hover {
+            opacity: 0.6;
           }
         `}</style>
       </ul>

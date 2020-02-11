@@ -4,25 +4,20 @@ import AdminSidePanel from '../../../components/admin/AdminSidePanel';
 import ErrorMessage from '../../../components/ErrorMessage';
 import API from '../../../service/APIService';
 import useAsync from '../../../hooks/useAsync';
-import UserForm from '../../../components/admin/forms/UserEditForm';
+import UserPlanEditForm from '../../../components/admin/forms/UserPlanEditForm';
 import { useRouter } from 'next/router';
 
-export default function UserEdit(): JSX.Element {
+export default function UserPlanEdit(): JSX.Element {
   const router = useRouter();
-  const userID = router.query.id.toString();
-  const { data, loading, error } = useAsync(() => API.GetUserByID(userID));
-  const userplan = useAsync(() => API.GetUserPlanByUserID(userID));
+  const userID = router.query.user_id.toString();
+  const { data, loading, error } = useAsync(() => API.GetUserPlanByUserID(userID));
   const [respError, setRespError] = useState();
   const [success, setSuccess] = useState();
   const hasError = !!error;
 
-  let showCreateUserPlan = false;
-  if (userplan.error) {
-    showCreateUserPlan = true;
-  }
-
   async function HandleSave(body: string) {
-    const res = await API.UpdateUser(userID, body);
+    console.log(body);
+    const res = await API.UpdateUserPlan(userID, body);
     if (res.status == 200) {
       setSuccess(true);
       setRespError(false);
@@ -33,9 +28,9 @@ export default function UserEdit(): JSX.Element {
   }
 
   async function HandleDelete() {
-    const res = await API.DeleteUser(userID);
+    const res = await API.DeleteUserPlan(userID);
     if (res.status == 200) {
-      router.push('/admin/users');
+      router.push('/admin/userplans');
     } else {
       setRespError(res);
     }
@@ -48,13 +43,12 @@ export default function UserEdit(): JSX.Element {
   return (
     <LayoutAdminDash AdminSidePanel={<AdminSidePanel />}>
       {!error ? (
-        <UserForm
-          showCreateUserPlan={showCreateUserPlan}
+        <UserPlanEditForm
           success={success}
           HandleDelete={HandleDelete}
           HandleSave={HandleSave}
           error={respError}
-          user={data.user}
+          userplan={data.userplan}
         />
       ) : (
         <ErrorMessage show={hasError} error={error} />
@@ -63,6 +57,6 @@ export default function UserEdit(): JSX.Element {
   );
 }
 
-UserEdit.getInitialProps = async () => {
+UserPlanEdit.getInitialProps = async () => {
   return {};
 };
