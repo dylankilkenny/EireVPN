@@ -69,12 +69,24 @@ func TestAuthTokens(t *testing.T) {
 		CreateCleanDB()
 	})
 
+	t.Run("No Refresh cookie", func(t *testing.T) {
+		user := CreateUser()
+		auth, _, csrfToken := GetTokens(user)
+		wantStatus := 403
+		wantCode := "REFCOOKMISS"
+		resp := makeRequest(t, auth+"1", "", csrfToken)
+		apiErr := bindError(resp)
+		assertCorrectStatus(t, wantStatus, apiErr.Status)
+		assertCorrectCode(t, wantCode, apiErr.Code)
+		CreateCleanDB()
+	})
+
 	t.Run("Token invalid", func(t *testing.T) {
 		user := CreateUser()
 		authToken, refreshToken, csrfToken := GetTokens(user)
 		wantStatus := 403
 		wantCode := "TOKENINVALID"
-		resp := makeRequest(t, authToken+"p", refreshToken, csrfToken)
+		resp := makeRequest(t, authToken+"p", refreshToken+"p", csrfToken)
 		apiErr := bindError(resp)
 		assertCorrectStatus(t, wantStatus, apiErr.Status)
 		assertCorrectCode(t, wantCode, apiErr.Code)
