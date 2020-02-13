@@ -96,6 +96,10 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/user/logout`);
   },
 
+  async ConfirmEmail(token: string) {
+    return getRequest(`${process.env.apiDomain}/api/user/confirm_email/${token}`);
+  },
+
   async GetSettings() {
     return getRequest(`${process.env.apiDomain}/api/protected/settings`);
   },

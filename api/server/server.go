@@ -213,7 +213,7 @@ func Connect(c *gin.Context) {
 		return
 	}
 
-	conf := config.GetConfig()
+	conf := config.Load()
 	if conf.App.EnableSubscriptions {
 		var userplan models.UserPlan
 		userplan.UserID = userID.(uint)

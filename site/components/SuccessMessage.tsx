@@ -10,7 +10,11 @@ const SuccessMessage: React.FC<SMProps> = ({ show, message }): JSX.Element => {
   if (!show) {
     return <div />;
   }
-  return <Alert variant="success">{message}</Alert>;
+  return (
+    <Alert className="center" variant="success">
+      {message}
+    </Alert>
+  );
 };
 
 export default SuccessMessage;

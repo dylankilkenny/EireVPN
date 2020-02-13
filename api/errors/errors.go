@@ -35,6 +35,7 @@ var (
 	EmailOrPassword             = APIError{400, "EMAILPASSMISS", "Email or password missing", "The Email or password missing"}
 	EmailNotFound               = APIError{400, "EMAILNOTFND", "Email Not Found", "No matching email address was found"}
 	UserNotFound                = APIError{400, "USERNOTFND", "User Not Found", "No matching user found for the supplied ID"}
+	EmailTokenNotFound          = APIError{400, "TOKNOTFOUND", "Token Not Found", "No matching token found"}
 	WrongPassword               = APIError{401, "WRONGPASS", "Wrong Password", "password is incorrect"}
 	EmailTaken                  = APIError{400, "EMAILTAKEN", "Email Taken", "email already exists"}
 	AuthCookieMissing           = APIError{403, "AUTHCOOKMISS", "Auth Cookie Missing", "Auth Cookie is missing"}

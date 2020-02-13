@@ -41,8 +41,8 @@ func (c *Cart) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-// Beforecdate sets the cdatedAt column to the current time
-func (c *Cart) Beforecdate(scope *gorm.Scope) error {
-	scope.SetColumn("cdatedAt", "check")
+// BeforeUpdate sets the UpdatedAt column to the current time
+func (c *Cart) BeforeUpdate(scope *gorm.Scope) error {
+	scope.SetColumn("UpdatedAt", time.Now())
 	return nil
 }

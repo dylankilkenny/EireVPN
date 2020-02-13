@@ -27,6 +27,7 @@ type User struct {
 	Password         string   `json:"password" binding:"required"`
 	StripeCustomerID string   `json:"stripe_customer_id"`
 	Type             UserType `json:"type"`
+	EmailConfirmed   bool     `json:"email_confirmed"`
 }
 
 func (u *User) Find() error {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"eirevpn/api/config"
+	cfg "eirevpn/api/config"
 	"eirevpn/api/integrations"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
@@ -18,8 +18,8 @@ func main() {
 
 	appPath, _ := os.Getwd()
 	filename, _ := filepath.Abs(appPath + "/config.yaml")
-	config.Init(filename)
-	conf := config.GetConfig()
+	cfg.Init(filename)
+	conf := cfg.Load()
 
 	integrations.Init()
 

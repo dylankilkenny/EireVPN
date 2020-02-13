@@ -14,7 +14,7 @@ import (
 
 // UserPlan fetches a plan by ID
 func UserPlan(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := config.Load()
 
 	userID, _ := strconv.ParseUint(c.Param("userid"), 10, 64)
 	var userplan models.UserPlan

@@ -1,8 +1,9 @@
 package user
 
 import (
-	"eirevpn/api/config"
+	cfg "eirevpn/api/config"
 	"eirevpn/api/errors"
+	"eirevpn/api/integrations/sendgrid"
 	"eirevpn/api/integrations/stripe"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
@@ -20,7 +21,7 @@ import (
 
 // User fetches a user by ID
 func User(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := cfg.Load()
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var user models.User
 	user.ID = uint(userID)
@@ -78,7 +79,7 @@ func User(c *gin.Context) {
 
 // UpdateUser updates a user
 func UpdateUser(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := cfg.Load()
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var user models.User
 	user.ID = uint(userID)
@@ -92,7 +93,7 @@ func UpdateUser(c *gin.Context) {
 
 	if err := user.Find(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Loc:   "/user/update/:id - UpdateUser()",
 			Code:  errors.UserNotFound.Code,
 			Extra: map[string]interface{}{"UserID": c.Param("id")},
 			Err:   err.Error(),
@@ -104,7 +105,7 @@ func UpdateUser(c *gin.Context) {
 	cookieUserID, exists := c.Get("UserID")
 	if !exists {
 		logger.Log(logger.Fields{
-			Loc: "/user/:id - User()",
+			Loc: "/user/update/:id - UpdateUser()",
 			Extra: map[string]interface{}{
 				"UserID": userID,
 				"Detail": "User ID does not exist in the context",
@@ -115,7 +116,7 @@ func UpdateUser(c *gin.Context) {
 	}
 	if cookieUserID.(uint) != user.ID {
 		logger.Log(logger.Fields{
-			Loc:  "/user/:id - User()",
+			Loc:  "/user/update/:id - UpdateUser()",
 			Code: errors.ProtectedRouted.Code,
 			Extra: map[string]interface{}{
 				"CookieUserID": cookieUserID,
@@ -132,7 +133,7 @@ func UpdateUser(c *gin.Context) {
 
 	if err := c.BindJSON(&userUpdates); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Loc:   "/user/update/:id - UpdateUser()",
 			Code:  errors.InvalidForm.Code,
 			Extra: map[string]interface{}{"UserID": c.Param("id")},
 			Err:   err.Error(),
@@ -146,7 +147,7 @@ func UpdateUser(c *gin.Context) {
 	user.Email = userUpdates.Email
 	if err := user.Save(); err != nil {
 		logger.Log(logger.Fields{
-			Loc:   "/user/protected/update/:id - UpdateUser()",
+			Loc:   "/user/update/:id - UpdateUser()",
 			Code:  errors.InternalServerError.Code,
 			Extra: map[string]interface{}{"UserID": user.ID},
 			Err:   err.Error(),
@@ -278,7 +279,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	conf := config.GetConfig()
+	conf := cfg.Load()
 
 	// TODO: Change the domain name and add correct maxAge time
 	authCookieMaxAge := 24 * 60 * conf.App.AuthCookieAge
@@ -295,7 +296,7 @@ func LoginUser(c *gin.Context) {
 
 // Logout signs a user out and deletes session
 func Logout(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := cfg.Load()
 
 	// Fetch auth token
 	authCookie, err := c.Request.Cookie(conf.App.AuthCookieName)
@@ -410,6 +411,28 @@ func SignUpUser(c *gin.Context) {
 		}
 	}
 
+	var et models.EmailToken
+	et.UserID = user.ID
+	if err := et.Create(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID, "Detail": "Error creating email confirmation object"},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	if err := sendgrid.Send().RegistrationMail(user, et.Token); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID, "Detail": "Error sending registration email"},
+			Err:   err.Error(),
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data":   make([]string, 0),
@@ -445,7 +468,7 @@ func AllUsers(c *gin.Context) {
 
 // ChangePassword will authenticate the users token and change their password
 func ChangePassword(c *gin.Context) {
-	// conf := config.GetConfig()
+	// conf := cfg.Load()
 
 	cookieUserID, exists := c.Get("UserID")
 	if !exists {
@@ -530,6 +553,65 @@ func ChangePassword(c *gin.Context) {
 		"status": 200,
 		"errors": make([]string, 0),
 		"data":   make([]string, 0),
+	})
+}
+
+// ConfirmEmail will confirm the users email address
+// with the token sent to their inbox
+func ConfirmEmail(c *gin.Context) {
+	token := c.Param("token")
+
+	var et models.EmailToken
+	et.Token = token
+	if err := et.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/:token - ConfirmEmail()",
+			Code:  errors.EmailTokenNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.EmailTokenNotFound.Status, errors.EmailTokenNotFound)
+		return
+	}
+
+	var user models.User
+	user.ID = et.UserID
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/:token - ConfirmEmail()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": et.UserID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	user.EmailConfirmed = true
+	if err := user.Save(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/:token - ConfirmEmail()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	if err := et.Delete(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/:token - ConfirmEmail()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
 	})
 }
 
@@ -741,7 +823,7 @@ func StripeUpdatePaymentSession(c *gin.Context) {
 }
 
 func Webhook(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := cfg.Load()
 	webhookevent, err := stripe.WebhookEventHandler(c.Request.Body, c.Request.Header.Get("Stripe-Signature"), conf.Stripe.EndpointSecret)
 	if err != nil {
 		logger.Log(logger.Fields{
@@ -778,7 +860,7 @@ func Webhook(c *gin.Context) {
 			userPlan.Active = true
 			userPlan.StartDate = time.Now()
 			userPlan.ExpiryDate = time.Unix(webhookevent.StripeSubscriptionEndPeriod, 0)
-			if err := userPlan.Save(); err != nil {
+			if err := userPlan.Create(); err != nil {
 				logger.Log(logger.Fields{
 					Loc:   "/user/webhook - Webhook()",
 					Code:  errors.InternalServerError.Code,
@@ -905,7 +987,9 @@ func Webhook(c *gin.Context) {
 
 			userPlan.Active = true
 			userPlan.ExpiryDate = time.Unix(webhookevent.StripeSubscriptionEndPeriod, 0)
-			if err := userPlan.Save(); err != nil {
+			// changed this to Create() as i presumed it would delete all existing plans
+			// and create this object as a new one. Still needs to be tested though
+			if err := userPlan.Create(); err != nil {
 				logger.Log(logger.Fields{
 					Loc:   "/user/webhook - Webhook()",
 					Code:  errors.InternalServerError.Code,

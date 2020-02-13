@@ -18,7 +18,7 @@ type JWTClaims struct {
 
 // Tokens creates a jwt token from the user ID
 func Tokens(usersession models.UserAppSession) (string, string, string, error) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	authExpiry := time.Hour * time.Duration(conf.App.AuthTokenExpiry)
 	refreshExpiry := time.Hour * time.Duration(conf.App.AuthTokenExpiry)
 
@@ -65,7 +65,7 @@ func Tokens(usersession models.UserAppSession) (string, string, string, error) {
 
 // PasswordResetToken creates a one time us jwt token from the users old password
 func PasswordResetToken(id string) (string, error) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	// Create the token
 	token := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
 	// Set some claims
@@ -83,7 +83,7 @@ func PasswordResetToken(id string) (string, error) {
 
 // ValidateAuthToken todo
 func ValidateToken(refreshToken string) (*JWTClaims, error) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	token, err := jwt_lib.ParseWithClaims(refreshToken, &JWTClaims{}, func(token *jwt_lib.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt_lib.SigningMethodHMAC); !ok {
@@ -100,7 +100,7 @@ func ValidateToken(refreshToken string) (*JWTClaims, error) {
 
 // ValidateString Validate token string
 func ValidateString(token string) (bool, error) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	_, err := jwt_lib.Parse(token, func(token *jwt_lib.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt_lib.SigningMethodHMAC); !ok {

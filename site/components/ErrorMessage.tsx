@@ -10,7 +10,11 @@ const ErrorMessage: React.FC<EMProps> = ({ error, show }): JSX.Element => {
   if (!show) {
     return <div />;
   }
-  return <Alert variant="danger">{error?.detail}</Alert>;
+  return (
+    <Alert className="center" variant="danger">
+      {error?.detail}
+    </Alert>
+  );
 };
 
 export default ErrorMessage;

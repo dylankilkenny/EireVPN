@@ -299,3 +299,7 @@ html {
   float: left;
   padding-left: 5px;
 }
+
+.center {
+  text-align: center;
+}

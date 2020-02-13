@@ -33,8 +33,7 @@ type WebhookEvent struct {
 }
 
 func Init() {
-	conf = config.GetConfig()
-	stripe.Key = conf.Stripe.SecretKey
+	stripe.Key = config.Load().Stripe.SecretKey
 }
 
 func CreatePlan(amount, intervalCount int64, interval, name, currency string) (*string, *string, error) {

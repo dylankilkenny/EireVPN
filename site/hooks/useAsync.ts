@@ -28,6 +28,7 @@ export default function useAsync(makeRequestFunc: MakeRequestFunc) {
         setError(res);
       }
     } catch (e) {
+      console.log(e);
       setError(fetchError);
       controller.abort();
     } finally {

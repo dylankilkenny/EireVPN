@@ -26,7 +26,7 @@ const secretkey = "verysecretkey1995"
 
 func Init(logging bool) *gin.Engine {
 
-	conf := config.GetConfig()
+	conf := config.Load()
 
 	var router *gin.Engine
 
@@ -71,6 +71,8 @@ func Init(logging bool) *gin.Engine {
 	private.GET("/user/cancel", user.CancelSubscription)
 	public.GET("/user/logout", user.Logout) //public so this router can skip auth middleware
 
+	public.GET("/user/confirm_email/:token", user.ConfirmEmail)
+
 	protected.GET("/plans/:id", plan.Plan)
 	protected.POST("/plans/create", plan.CreatePlan)
 	protected.PUT("/plans/update/:id", plan.UpdatePlan)
@@ -100,7 +102,7 @@ func Init(logging bool) *gin.Engine {
 
 func auth(secret string, protected bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		conf := config.GetConfig()
+		conf := config.Load()
 		if conf.App.EnableAuth {
 			var usersession models.UserAppSession
 
@@ -149,7 +151,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 				if err != nil {
 					logger.Log(logger.Fields{
 						Loc:  "router.go - auth()",
-						Code: errors.TokenInvalid.Code,
+						Code: errors.RefresCookieMissing.Code,
 						Err:  err.Error(),
 					})
 					clearCookies(c)
@@ -271,7 +273,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 }
 
 func clearCookies(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
 	c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
 	c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
