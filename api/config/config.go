@@ -41,13 +41,21 @@ type Config struct {
 		SuccessURL        string `yaml:"SuccessUrl"`
 		ErrorURL          string `yaml:"ErrorUrl"`
 	} `yaml:"Stripe"`
+
+	SendGrid struct {
+		APIKey            string `yaml:"APIKey"`
+		IntegrationActive bool   `yaml:"IntegrationActive"`
+		Templates         struct {
+			Registration string `yaml:"Registration"`
+		} `yaml:"Templates"`
+	} `yaml:"SendGrid"`
 }
 
 func Init(filename string) {
 	configFilename = filename
 }
 
-func GetConfig() Config {
+func Load() Config {
 	conf := Config{}
 	yamlFile, err := ioutil.ReadFile(configFilename)
 	if err != nil {

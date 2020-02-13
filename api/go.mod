@@ -13,6 +13,9 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.2.0
 	github.com/logrusorgru/aurora v0.0.0-20190803045625-94edacc10f9b
+	github.com/satori/go.uuid v1.2.0
+	github.com/sendgrid/rest v2.4.1+incompatible
+	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	github.com/sirupsen/logrus v1.4.3-0.20190701143506-07a84ee7412e
 	github.com/stretchr/testify v1.3.0
 	github.com/stripe/stripe-go v62.8.2+incompatible

@@ -5,11 +5,14 @@ App:
   AllowedOrigins:
     - http://localhost:3001/
   EnableCSRF: true
-  EnableSubscriptions: true
+  EnableSubscriptions: false
   EnableAuth: true
   AuthCookieAge: 168
+  RefreshCookieAge: 168
   AuthCookieName: authToken
-  AuthTokenExpiry: 48
+  RefreshCookieName: refreshToken
+  AuthTokenExpiry: 1
+  RefreshTokenExpiry: 48
 
 DB:
   User: eirevpn_test
@@ -24,3 +27,9 @@ Stripe:
   IntegrationActive: false
   SuccessUrl: https://eirevpn.ie/success
   ErrorUrl: https://eirevpn.ie/error
+
+SendGrid:
+  APIKey: key
+  IntegrationActive: false
+  Templates:
+    Registration: id
