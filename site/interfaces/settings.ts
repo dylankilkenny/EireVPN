@@ -6,4 +6,5 @@ export default interface Settings {
   authCookieAge: number;
   authCookieName: string;
   authTokenExpiry: number;
+  allowedOrigins: string[];
 }

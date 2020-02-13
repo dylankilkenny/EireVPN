@@ -9,6 +9,7 @@ interface FormGroupProps {
   name: string;
   label: string;
   value: string;
+  textarea?: boolean;
   required?: boolean;
   type?: string;
   className?: string;
@@ -24,6 +25,7 @@ const FormGroup: React.FC<FormGroupProps> = ({
   name,
   label,
   value,
+  textarea,
   required,
   type,
   className,
@@ -39,8 +41,8 @@ const FormGroup: React.FC<FormGroupProps> = ({
   return (
     <Form.Group as={Col} controlId={name}>
       <Form.Label sm="2">{label}</Form.Label>
-      {console.log(isInvalid)}
       <Form.Control
+        as={textarea ? 'textarea' : 'input'}
         required={required}
         className={`${className}`}
         readOnly={plainText}

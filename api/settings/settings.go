@@ -11,10 +11,11 @@ import (
 )
 
 type SettingsFields struct {
-	EnableCSRF          string `json:"enableCsrf" binding:"required"`
-	EnableSubscriptions string `json:"enableSubscriptions" binding:"required"`
-	EnableAuth          string `json:"enableAuth" binding:"required"`
-	IntegrationActive   string `json:"enableStripe" binding:"required"`
+	EnableCSRF          string   `json:"enableCsrf" binding:"required"`
+	EnableSubscriptions string   `json:"enableSubscriptions" binding:"required"`
+	EnableAuth          string   `json:"enableAuth" binding:"required"`
+	IntegrationActive   string   `json:"enableStripe" binding:"required"`
+	AllowedOrigins      []string `json:"allowedOrigins" binding:"required"`
 }
 
 // UpdateSettings updates the config.yaml
@@ -31,11 +32,12 @@ func UpdateSettings(c *gin.Context) {
 		return
 	}
 
-	conf := config.GetConfig()
+	conf := config.Load()
 	conf.App.EnableCSRF = settingsUpdates.EnableCSRF == "true"
 	conf.App.EnableSubscriptions = settingsUpdates.EnableSubscriptions == "true"
 	conf.App.EnableAuth = settingsUpdates.EnableAuth == "true"
 	conf.Stripe.IntegrationActive = settingsUpdates.IntegrationActive == "true"
+	conf.App.AllowedOrigins = settingsUpdates.AllowedOrigins
 
 	if err := conf.SaveConfig(); err != nil {
 		logger.Log(logger.Fields{
@@ -55,13 +57,14 @@ func UpdateSettings(c *gin.Context) {
 
 // Settings fetches the settings
 func Settings(c *gin.Context) {
-	conf := config.GetConfig()
+	conf := config.Load()
 
 	s := SettingsFields{
 		EnableCSRF:          strconv.FormatBool(conf.App.EnableCSRF),
 		EnableSubscriptions: strconv.FormatBool(conf.App.EnableSubscriptions),
 		EnableAuth:          strconv.FormatBool(conf.App.EnableAuth),
 		IntegrationActive:   strconv.FormatBool(conf.Stripe.IntegrationActive),
+		AllowedOrigins:      conf.App.AllowedOrigins,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

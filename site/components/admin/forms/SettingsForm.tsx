@@ -6,6 +6,7 @@ import ButtonMain from '../../ButtonMain';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 import FormDropdown from './FormDropdown';
+import FormInput from './FormInput';
 import SuccessMessage from '../../SuccessMessage';
 
 interface SettingsFormProps {
@@ -21,6 +22,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ settings, error, success, H
   const [enableSubscriptions, setEnableSubs] = useState(settings.enableSubscriptions);
   const [enableAuth, setEnableAuth] = useState(settings.enableAuth);
   const [enableStripe, setEnableStripe] = useState(settings.enableStripe);
+  const [allowedOrigins, setAllowedOrigins] = useState(settings.allowedOrigins.join(',\n'));
 
   const handleSaveClick = () => {
     HandleSave(
@@ -28,7 +30,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ settings, error, success, H
         enableCsrf,
         enableSubscriptions,
         enableAuth,
-        enableStripe
+        enableStripe,
+        allowedOrigins: allowedOrigins.replace(/\r?\n|\r/g, '').split(',')
       })
     );
   };
@@ -76,6 +79,17 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ settings, error, success, H
                 value={enableStripe}
                 options={['true', 'false']}
                 onChange={setEnableStripe}
+              />
+            </Form.Row>
+            <Form.Row>
+              <FormInput
+                textarea
+                name="allowed_origins"
+                label="Allowed Origins"
+                value={allowedOrigins}
+                onChange={setAllowedOrigins}
+                feebackType="invalid"
+                feebackValue="Required"
               />
             </Form.Row>
           </Form>
