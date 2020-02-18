@@ -33,9 +33,8 @@ func Tokens(usersession models.UserAppSession) (string, string, string, error) {
 	csrfTokenString, err := csrfToken.SignedString([]byte(conf.App.JWTSecret))
 
 	authTokenClaims := JWTClaims{
-		UserID:            usersession.UserID,
-		CSRF:              csrfTokenString,
-		SessionIdentifier: usersession.Identifier,
+		UserID: usersession.UserID,
+		CSRF:   csrfTokenString,
 		StandardClaims: jwt_lib.StandardClaims{
 			ExpiresAt: time.Now().Add(authExpiry).Unix(),
 		},
@@ -46,7 +45,8 @@ func Tokens(usersession models.UserAppSession) (string, string, string, error) {
 	authTokenString, err := authToken.SignedString([]byte(conf.App.JWTSecret))
 
 	refreshTokenClaims := JWTClaims{
-		UserID: usersession.UserID,
+		UserID:            usersession.UserID,
+		SessionIdentifier: usersession.Identifier,
 		StandardClaims: jwt_lib.StandardClaims{
 			ExpiresAt: time.Now().Add(refreshExpiry).Unix(),
 		},

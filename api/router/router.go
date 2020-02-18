@@ -149,7 +149,7 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 					return
 				}
 
-				_, err = jwt.ValidateToken(refreshToken.Value)
+				refreshClaims, err := jwt.ValidateToken(refreshToken.Value)
 				if err != nil {
 					logger.Log(logger.Fields{
 						Loc:  "router.go - auth()",
@@ -161,23 +161,23 @@ func auth(secret string, protected bool) gin.HandlerFunc {
 					return
 				}
 
-			}
+				usersession = models.UserAppSession{
+					UserID:     refreshClaims.UserID,
+					Identifier: refreshClaims.SessionIdentifier,
+				}
 
-			usersession = models.UserAppSession{
-				UserID:     authClaims.UserID,
-				Identifier: authClaims.SessionIdentifier,
-			}
+				if err := usersession.Find(); err != nil {
+					logger.Log(logger.Fields{
+						Loc:   "router.go - auth()",
+						Code:  errors.InvalidIdentifier.Code,
+						Extra: map[string]interface{}{"Identifier": usersession.Identifier},
+						Err:   err.Error(),
+					})
+					clearCookies(c)
+					c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
+					return
+				}
 
-			if err := usersession.Find(); err != nil {
-				logger.Log(logger.Fields{
-					Loc:   "router.go - auth()",
-					Code:  errors.InvalidIdentifier.Code,
-					Extra: map[string]interface{}{"Identifier": usersession.Identifier},
-					Err:   err.Error(),
-				})
-				clearCookies(c)
-				c.AbortWithStatusJSON(errors.InvalidIdentifier.Status, errors.InvalidIdentifier)
-				return
 			}
 
 			// Check CSRF token
