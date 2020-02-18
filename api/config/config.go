@@ -46,7 +46,8 @@ type Config struct {
 		APIKey            string `yaml:"APIKey"`
 		IntegrationActive bool   `yaml:"IntegrationActive"`
 		Templates         struct {
-			Registration string `yaml:"Registration"`
+			Registration   string `yaml:"Registration"`
+			SupportRequest string `yaml:"SupportRequest"`
 		} `yaml:"Templates"`
 	} `yaml:"SendGrid"`
 }

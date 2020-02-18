@@ -19,9 +19,59 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func checkPrivilege(c *gin.Context, queryUserID uint) *errors.APIError {
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/user - checkPrivilege()",
+			Extra: map[string]interface{}{
+				"UserID": cookieUserID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		return &errors.InternalServerError
+	}
+
+	var user models.User
+	user.ID = cookieUserID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/user - checkPrivilege()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": cookieUserID},
+			Err:   err.Error(),
+		})
+		return &errors.UserNotFound
+	}
+
+	if user.Type == models.UserTypeAdmin {
+		return nil
+	}
+
+	if user.ID != queryUserID {
+		logger.Log(logger.Fields{
+			Loc:  "/user - checkPrivilege()",
+			Code: errors.ProtectedRouted.Code,
+			Extra: map[string]interface{}{
+				"CookieUserID": cookieUserID,
+				"QueryUserID":  queryUserID,
+			},
+			Err: "User does not have permission to access route",
+		})
+		return &errors.ProtectedRouted
+	}
+	return nil
+}
+
+func clearCookies(c *gin.Context) {
+	conf := cfg.Load()
+	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
+}
+
 // User fetches a user by ID
 func User(c *gin.Context) {
-	conf := cfg.Load()
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	var user models.User
 	user.ID = uint(userID)
@@ -36,33 +86,9 @@ func User(c *gin.Context) {
 		return
 	}
 
-	cookieUserID, exists := c.Get("UserID")
-	if !exists {
-		logger.Log(logger.Fields{
-			Loc: "/user/:id - User()",
-			Extra: map[string]interface{}{
-				"UserID": userID,
-				"Detail": "User ID does not exist in the context",
-			},
-		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-		return
-	}
-	if cookieUserID.(uint) != user.ID {
-		logger.Log(logger.Fields{
-			Loc:  "/user/:id - User()",
-			Code: errors.ProtectedRouted.Code,
-			Extra: map[string]interface{}{
-				"CookieUserID": cookieUserID,
-				"QueryUserID":  userID,
-			},
-			Err: "User does not have permission to access route",
-		})
-
-		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
-		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
-		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
-		return
+	if err := checkPrivilege(c, user.ID); err != nil {
+		clearCookies(c)
+		c.AbortWithStatusJSON(err.Status, err)
 	}
 
 	user.Password = ""
@@ -126,6 +152,7 @@ func UpdateUser(c *gin.Context) {
 		})
 
 		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+		c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
 		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
 		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
 		return
@@ -333,6 +360,8 @@ func Logout(c *gin.Context) {
 	}
 
 	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"errors": make([]string, 0),

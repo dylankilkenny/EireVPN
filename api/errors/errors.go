@@ -48,6 +48,7 @@ var (
 	UserPlanExpired             = APIError{401, "EXPIREDPLAN", "User Plan Expired", "You do not have an active plan."}
 	UserPlanNotFound            = APIError{401, "USERPLANNOTFOUND", "User Plan Not Found", "Users subscription does not exist."}
 	SettingsUpdateFailed        = APIError{401, "SETTINGSUPFAILED", "Settings Update Failed", "Failed to update the systems settings."}
+	MsgBindingFailed            = APIError{401, "MSGBINDINGFAILED", "Message Binding Failed", "Message binding failed."}
 )
 
 func (err *APIError) Error() string {

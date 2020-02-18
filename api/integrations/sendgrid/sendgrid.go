@@ -25,14 +25,10 @@ func Send() *SendGrid {
 }
 
 func (sg *SendGrid) makeRequest() error {
-	response, err := sendgrid.API(sg.Request)
+	_, err := sendgrid.API(sg.Request)
 	if err != nil {
 		fmt.Println("err", err)
 		return err
-	} else {
-		fmt.Println(response.StatusCode)
-		fmt.Println(response.Body)
-		fmt.Println(response.Headers)
 	}
 	return nil
 }
@@ -46,11 +42,26 @@ func (sg *SendGrid) RegistrationMail(user models.User, token string) error {
 	m.SetFrom(e)
 	m.SetTemplateID(cfg.Load().SendGrid.Templates.Registration)
 	p := mail.NewPersonalization()
-	tos := []*mail.Email{
-		mail.NewEmail(user.FirstName+" "+user.LastName, user.Email),
-	}
-	p.AddTos(tos...)
+	p.AddTos(mail.NewEmail(user.FirstName+" "+user.LastName, user.Email))
 	p.SetDynamicTemplateData("confirm_email_url", cfg.Load().App.Domain+"/confirm_email?token="+token)
+	m.AddPersonalizations(p)
+	sg.Request.Body = mail.GetRequestBody(m)
+	return sg.makeRequest()
+}
+
+// RegistrationMail builds the body for sending a registration email
+func (sg *SendGrid) SupportRequest(email, subject, message string) error {
+	m := mail.NewV3Mail()
+	name := "Mail Service"
+	e := mail.NewEmail(name, "mailservice@eirevpn.ie")
+	m.SetFrom(e)
+	m.SetTemplateID(cfg.Load().SendGrid.Templates.SupportRequest)
+	p := mail.NewPersonalization()
+	p.AddTos(mail.NewEmail("Support", "support@eirevpn.ie"))
+	p.AddCCs(mail.NewEmail("", email))
+	p.Subject = subject
+	p.SetDynamicTemplateData("subject", subject)
+	p.SetDynamicTemplateData("message", message)
 	m.AddPersonalizations(p)
 	sg.Request.Body = mail.GetRequestBody(m)
 	return sg.makeRequest()

@@ -12,9 +12,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func checkPrivilege(c *gin.Context, queryUserID uint) *errors.APIError {
+	cookieUserID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/userplans - checkPrivilege()",
+			Extra: map[string]interface{}{
+				"UserID": cookieUserID,
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+		return &errors.InternalServerError
+	}
+
+	var user models.User
+	user.ID = cookieUserID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/userplans - checkPrivilege()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": cookieUserID},
+			Err:   err.Error(),
+		})
+		return &errors.UserNotFound
+	}
+
+	if user.Type == models.UserTypeAdmin {
+		return nil
+	}
+
+	if user.ID != queryUserID {
+		logger.Log(logger.Fields{
+			Loc:  "/userplans - checkPrivilege()",
+			Code: errors.ProtectedRouted.Code,
+			Extra: map[string]interface{}{
+				"CookieUserID": cookieUserID,
+				"QueryUserID":  queryUserID,
+			},
+			Err: "User does not have permission to access route",
+		})
+		return &errors.ProtectedRouted
+	}
+	return nil
+}
+
+func clearCookies(c *gin.Context) {
+	conf := config.Load()
+	c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie(conf.App.RefreshCookieName, "", -1, "/", conf.App.Domain, false, true)
+	c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
+}
+
 // UserPlan fetches a plan by ID
 func UserPlan(c *gin.Context) {
-	conf := config.Load()
 
 	userID, _ := strconv.ParseUint(c.Param("userid"), 10, 64)
 	var userplan models.UserPlan
@@ -30,33 +80,9 @@ func UserPlan(c *gin.Context) {
 		return
 	}
 
-	cookieUserID, exists := c.Get("UserID")
-	if !exists {
-		logger.Log(logger.Fields{
-			Loc: "/userplans/:id - UserPlan()",
-			Extra: map[string]interface{}{
-				"UserID": userID,
-				"Detail": "User ID does not exist in the context",
-			},
-		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-		return
-	}
-	if cookieUserID.(uint) != userplan.UserID {
-		logger.Log(logger.Fields{
-			Loc:  "/userplans/:id - UserPlan()",
-			Code: errors.ProtectedRouted.Code,
-			Extra: map[string]interface{}{
-				"CookieUserID": cookieUserID,
-				"QueryUserID":  userID,
-			},
-			Err: "User does not have permission to access route",
-		})
-
-		c.SetCookie(conf.App.AuthCookieName, "", -1, "/", conf.App.Domain, false, true)
-		c.SetCookie("uid", "", -1, "/", conf.App.Domain, false, false)
-		c.AbortWithStatusJSON(errors.ProtectedRouted.Status, errors.ProtectedRouted)
-		return
+	if err := checkPrivilege(c, userplan.UserID); err != nil {
+		clearCookies(c)
+		c.AbortWithStatusJSON(err.Status, err)
 	}
 
 	type UserPlanCustom struct {

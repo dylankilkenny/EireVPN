@@ -3,20 +3,20 @@ package router
 import (
 	"eirevpn/api/config"
 	"eirevpn/api/errors"
+	"eirevpn/api/handlers/message"
+	"eirevpn/api/handlers/plan"
+	"eirevpn/api/handlers/server"
+	"eirevpn/api/handlers/settings"
+	"eirevpn/api/handlers/user"
+	"eirevpn/api/handlers/userplan"
 	"eirevpn/api/logger"
 	"eirevpn/api/models"
-	"eirevpn/api/server"
-	"eirevpn/api/settings"
 	"eirevpn/api/util/jwt"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
-
-	"eirevpn/api/plan"
-	"eirevpn/api/user"
-	"eirevpn/api/userplan"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -95,6 +95,8 @@ func Init(logging bool) *gin.Engine {
 
 	protected.GET("/settings", settings.Settings)
 	protected.PUT("/settings/update", settings.UpdateSettings)
+
+	public.POST("/message", message.Message)
 
 	router.Static("/assets", "./assets")
 	return router
