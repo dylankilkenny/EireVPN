@@ -12,4 +12,5 @@ api/.vscode
 api/tmp
 api/pgdata
 api/config.yaml
+api/logs
 api/assets
