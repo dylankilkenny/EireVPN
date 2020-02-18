@@ -7,7 +7,7 @@ declare global {
 }
 
 export const initGA = () => {
-  ReactGA.initialize(process.env.apiDomain ? process.env.apiDomain : '');
+  ReactGA.initialize(process.env.GA_KEY ? process.env.GA_KEY : '');
 };
 
 export const logPageView = () => {
