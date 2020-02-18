@@ -100,6 +100,10 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/user/confirm_email/${token}`);
   },
 
+  async ContactSupport(body: string) {
+    return postRequest(`${process.env.apiDomain}/api/message`, body);
+  },
+
   async GetSettings() {
     return getRequest(`${process.env.apiDomain}/api/protected/settings`);
   },

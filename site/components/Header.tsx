@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
+import Image from 'react-bootstrap/Image';
 import Auth from '../service/Auth';
 import Link from 'next/link';
 
@@ -54,8 +55,8 @@ const HeaderUser = () => {
 
   return (
     <HeaderBase>
-      <NavLink href="/about" text="About" />
       <NavLink href="/products" text="Products" />
+      <NavLink href="/contact" text="Contact Support" />
       <NavLink href={loginLink} text={loginStatus} />
       <Navbar.Text>
         <Link href="/signup">
@@ -75,6 +76,7 @@ const HeaderBrand = () => {
     <Navbar.Brand>
       <Link href="/">
         <a>
+          <Image className="branding-shield" fluid src="../static/images/shield.png" />
           <h2 className="branding">
             ÉireVPN
             <Badge className="badge-custom" variant="danger">

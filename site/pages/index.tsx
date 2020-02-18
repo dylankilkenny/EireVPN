@@ -12,7 +12,7 @@ export default function LandingPage() {
         <Container>
           <Row>
             <Col xs={12} md={6}>
-              <div className="headline">High speed Irish VPN.</div>
+              <div className="headline">High speed Irish VPN and Ad Blocker.</div>
               <p className="p-landing">
                 Safely secure your browsing and enjoy unrestricted access worldwide.
               </p>

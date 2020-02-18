@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IconContext } from 'react-icons';
-import { IoMdPerson, IoIosCalendar } from 'react-icons/io';
+import { IoMdPerson } from 'react-icons/io';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';

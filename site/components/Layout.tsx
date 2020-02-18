@@ -3,12 +3,17 @@ import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { logPageView } from '../service/Analytics';
+import React, { useEffect } from 'react';
 
 interface Props {
   children: React.ReactNode;
 }
 
 const HtmlHead = (): JSX.Element => {
+  useEffect(() => {
+    logPageView();
+  });
   return (
     <Head>
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -41,6 +46,20 @@ const LayoutLogin: React.FC<Props> = props => (
           {props.children}
         </Col>
         <Col sm={12} md={2} lg={3}></Col>
+      </Row>
+    </Container>
+  </div>
+);
+
+const LayoutContact: React.FC<Props> = props => (
+  <div>
+    <HtmlHead />
+    <HeaderUser />
+    <Container fluid>
+      <Row>
+        <Col>
+          <div className="account-dash">{props.children}</div>
+        </Col>
       </Row>
     </Container>
   </div>
@@ -92,4 +111,4 @@ const LayoutAdminDash: React.FC<AdminDashProps> = ({ AdminSidePanel, children })
   </div>
 );
 
-export { LayoutLanding, LayoutLogin, LayoutAdminDash, LayoutUserDash };
+export { LayoutLanding, LayoutLogin, LayoutAdminDash, LayoutUserDash, LayoutContact };

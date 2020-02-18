@@ -1,7 +1,7 @@
 /* Header */
-/* body {
-    background-color: #004643;
-} */
+body {
+  background-color: #abd1c69c;
+}
 
 html {
   height: 100%;
@@ -280,6 +280,10 @@ html {
   width: 75%;
 }
 
+.w-100 {
+  width: 100%;
+}
+
 .details-back-btn {
   color: #004643;
 }
@@ -302,4 +306,72 @@ html {
 
 .center {
   text-align: center;
+}
+
+.login-links-cont {
+  width: 100%;
+  margin: auto;
+  margin-top: 20px;
+  color: #004643;
+  font-size: 16px;
+}
+
+.create-account-link {
+  float: right;
+  color: #004643;
+  text-decoration: none !important;
+}
+
+.create-account-link:hover {
+  color: #004643;
+  opacity: 0.6;
+}
+
+.forgot-pass-link {
+  float: left;
+  color: #004643;
+  text-decoration: none !important;
+  font-weight: 500;
+}
+
+.forgot-pass-link:hover {
+  color: #004643;
+  opacity: 0.6;
+}
+
+.signup-links-cont {
+  text-align: center;
+  width: 100%;
+  margin: auto;
+  margin-top: 20px;
+  font-size: 17px;
+}
+
+.login-link {
+  margin-left: 10px;
+  color: #004643;
+  text-decoration: none !important;
+  font-weight: 500;
+}
+
+.login-link:hover {
+  color: #004643;
+  opacity: 0.6;
+}
+
+.contact-img-cont {}
+
+.contact-img-cont h1 {
+  margin-bottom: 50px;
+}
+
+.contact-form {
+  margin-top: 50px;
+}
+
+.branding-shield {
+  width: 40px;
+  float: left;
+  margin-right: 10px;
+  margin-top: -3px;
 }

@@ -6,6 +6,9 @@ import SuccessMessage from '../../SuccessMessage';
 import APIError from '../../../interfaces/error';
 import ButtonMain from '../../ButtonMain';
 import FormInput from './FormInput';
+import { IconContext } from 'react-icons';
+import { MdAccountCircle } from 'react-icons/md';
+import Link from 'next/link';
 
 interface LoginFormProps {
   signedup?: boolean;
@@ -35,7 +38,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ HandleLogin, signedup, error }) =
     <Card style={{ padding: 20 }}>
       <Card.Body>
         <Card.Title className="card-title-form">
-          <h2>Login</h2>
+          <h2 className="center">Login</h2>
         </Card.Title>
         <SuccessMessage show={!!signedup} message="Sign up complete, please log in" />
         <Form noValidate validated={validated} onSubmit={(e: TFormEvent) => handleSubmit(e)}>
@@ -64,8 +67,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ HandleLogin, signedup, error }) =
             />
           </Form.Row>
           <ErrorMessage show={!!error} error={error} />
-          <ButtonMain type="submit" value="Submit" />
+          <ButtonMain className="w-100" type="submit" value="Submit" />
         </Form>
+
+        <div className="login-links-cont">
+          <Link href="/forgotpass">
+            <a className="forgot-pass-link">Forgot Password?</a>
+          </Link>
+          <Link href="/signup">
+            <a className="create-account-link">
+              <IconContext.Provider value={{ size: '1.5em' }}>
+                <MdAccountCircle />
+              </IconContext.Provider>
+              Create Account
+            </a>
+          </Link>
+        </div>
       </Card.Body>
     </Card>
   );
