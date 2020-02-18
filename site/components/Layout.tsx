@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { logPageView } from '../service/Analytics';
+import { initGA, logPageView } from '../service/Analytics';
 import React, { useEffect } from 'react';
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
 
 const HtmlHead = (): JSX.Element => {
   useEffect(() => {
+    initGA();
     logPageView();
   });
   return (

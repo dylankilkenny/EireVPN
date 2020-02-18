@@ -5,8 +5,5 @@ import React, { useEffect } from 'react';
 import { initGA } from '../service/Analytics';
 
 export default function MyApp({ Component, pageProps }) {
-  useEffect(() => {
-    initGA();
-  });
   return <Component {...pageProps} />;
 }

@@ -16,7 +16,7 @@ interface SubscriptionCardProps {
 const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ userid }) => {
   const { data, loading, error } = useAsync(() => API.GetUserPlanByUserID(userid));
 
-  if (loading) {
+  if (loading || data === undefined) {
     return <div></div>;
   }
 
