@@ -100,6 +100,10 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/user/confirm_email/${token}`);
   },
 
+  async ResendConfirmEmailLink() {
+    return getRequest(`${process.env.apiDomain}/api/private/user/confirm_email_resend`);
+  },
+
   async ContactSupport(body: string) {
     return postRequest(`${process.env.apiDomain}/api/message`, body);
   },

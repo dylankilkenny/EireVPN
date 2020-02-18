@@ -7,6 +7,7 @@ import Card from 'react-bootstrap/Card';
 import useAsync from '../hooks/useAsync';
 import API from '../service/APIService';
 import { useRouter } from 'next/router';
+import Badge from 'react-bootstrap/Badge';
 
 interface UserDetailsCardProps {
   userid: string;
@@ -15,8 +16,19 @@ interface UserDetailsCardProps {
 const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ userid }) => {
   const router = useRouter();
   const { data, loading, error } = useAsync(() => API.GetUserByID(userid));
+  const [emailSent, setEmailSent] = useState(false);
+
   const handleEditClick = () => {
     router.push('/account/edit');
+  };
+
+  const resendEmail = async () => {
+    const res = await API.ResendConfirmEmailLink();
+    if (res.status == 200) {
+      setEmailSent(true);
+    } else {
+      console.log(res);
+    }
   };
 
   if (loading) {
@@ -64,8 +76,28 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ userid }) => {
           </Row>
           <Row>
             <Col>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">
+                Email
+                {user.email_confirmed ? (
+                  <Badge className="badge-email" variant="success">
+                    Confirmed
+                  </Badge>
+                ) : (
+                  <span>
+                    <Badge className="badge-email" variant="warning">
+                      Unconfirmed
+                    </Badge>
+                  </span>
+                )}
+              </label>
               <div id="email">{user.email}</div>
+              {!emailSent ? (
+                <div onClick={() => resendEmail()} className="email-resend">
+                  Resend Confirmation Email
+                </div>
+              ) : (
+                <div className="email-sent">Sent!</div>
+              )}
             </Col>
             <Col>
               <label htmlFor="lastname">Password</label>

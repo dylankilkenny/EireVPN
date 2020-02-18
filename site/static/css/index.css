@@ -375,3 +375,20 @@ html {
   margin-right: 10px;
   margin-top: -3px;
 }
+
+.badge-email {
+  margin-left: 10px;
+}
+
+.email-resend {
+  margin-top: -19px;
+  color: #004643;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.email-sent {
+  margin-top: -19px;
+  cursor: pointer;
+  font-size: 13px;
+}

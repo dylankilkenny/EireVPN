@@ -644,6 +644,60 @@ func ConfirmEmail(c *gin.Context) {
 	})
 }
 
+// ResendLink will resend the confirm email link
+func ResendLink(c *gin.Context) {
+
+	userID, exists := c.Get("UserID")
+	if !exists {
+		logger.Log(logger.Fields{
+			Loc: "/confirm_email/resend - ResendLink()",
+			Extra: map[string]interface{}{
+				"Detail": "User ID does not exist in the context",
+			},
+		})
+	}
+	var user models.User
+	user.ID = userID.(uint)
+	if err := user.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/resend - ResendLink()",
+			Code:  errors.UserNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
+		return
+	}
+
+	var et models.EmailToken
+	et.UserID = user.ID
+	if err := et.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/confirm_email/resend - ResendLink()",
+			Code:  errors.EmailTokenNotFound.Code,
+			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.EmailTokenNotFound.Status, errors.EmailTokenNotFound)
+		return
+	}
+
+	if err := sendgrid.Send().RegistrationMail(user, et.Token); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/signup - SignUpUser()",
+			Code:  errors.InternalServerError.Code,
+			Extra: map[string]interface{}{"UserID": user.ID, "Detail": "Error sending registration email"},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+	})
+}
+
 func StripeSession(c *gin.Context) {
 	var user models.User
 

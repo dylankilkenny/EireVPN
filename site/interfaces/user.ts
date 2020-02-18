@@ -7,4 +7,5 @@ export default interface User {
   email: string;
   stripe_customer_id: string;
   type: string;
+  email_confirmed: boolean;
 }

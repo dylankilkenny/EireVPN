@@ -72,6 +72,7 @@ func Init(logging bool) *gin.Engine {
 	public.GET("/user/logout", user.Logout) //public so this router can skip auth middleware
 
 	public.GET("/user/confirm_email/:token", user.ConfirmEmail)
+	private.GET("/user/confirm_email_resend", user.ResendLink)
 
 	protected.GET("/plans/:id", plan.Plan)
 	protected.POST("/plans/create", plan.CreatePlan)
