@@ -71,6 +71,9 @@ func Init(logging bool) *gin.Engine {
 	private.GET("/user/cancel", user.CancelSubscription)
 	public.GET("/user/logout", user.Logout) //public so this router can skip auth middleware
 
+	public.POST("/user/forgot_pass", user.ForgotPasswordToken)
+	public.POST("/user/forgot_pass/:token", user.UpdatePassword)
+
 	public.GET("/user/confirm_email/:token", user.ConfirmEmail)
 	private.GET("/user/confirm_email_resend", user.ResendLink)
 

@@ -48,6 +48,7 @@ type Config struct {
 		Templates         struct {
 			Registration   string `yaml:"Registration"`
 			SupportRequest string `yaml:"SupportRequest"`
+			ForgotPassword string `yaml:"ForgotPassword"`
 		} `yaml:"Templates"`
 	} `yaml:"SendGrid"`
 }

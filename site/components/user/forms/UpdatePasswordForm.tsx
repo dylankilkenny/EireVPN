@@ -4,30 +4,22 @@ import ButtonMain from '../../ButtonMain';
 import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import FormInput from '../../admin/forms/FormInput';
+import APIError from '../../../interfaces/error';
+import SuccessMessage from '../../SuccessMessage';
 
-interface ChangePasswordFormProps {
+interface UpdatePasswordProps {
   success: boolean;
-  HandleSave: (body: string) => Promise<void>;
+  error: APIError;
+  HandleSubmit: (body: string) => Promise<void>;
 }
 
 type TFormEvent = React.FormEvent<HTMLFormElement>;
 
-const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ success, HandleSave }) => {
+const UpdatePasswordForm: React.FC<UpdatePasswordProps> = ({ success, error, HandleSubmit }) => {
   const [err, setError] = useState();
-  const [current_password, setCurrentPassword] = useState();
-  const [new_password, setNewPassword] = useState();
-  const [confirmNewPassword, setConfirmNewPassword] = useState();
+  const [password, setPassword] = useState();
+  const [confirmPassword, setConfirmPassword] = useState();
   const [validated, setValidated] = useState(false);
-
-  // if saved successfully clear password fields
-  useEffect(() => {
-    if (success) {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-      setValidated(false);
-    }
-  });
 
   const handleSubmit = (event: TFormEvent) => {
     event.stopPropagation();
@@ -36,9 +28,9 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ success, Handle
     // this sets form validation feedback to visible
     setValidated(true);
     if (form.checkValidity() === true) {
-      if (new_password == confirmNewPassword) {
+      if (password == confirmPassword) {
         setError(undefined);
-        HandleSave(JSON.stringify({ current_password, new_password }));
+        HandleSubmit(JSON.stringify({ password }));
       } else {
         setError({
           status: 0,
@@ -51,38 +43,43 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ success, Handle
     }
   };
 
+  if (!success) {
+    return (
+      <Card className="password-reset-card">
+        <SuccessMessage show={true} message="Password updated successfully." />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="password-reset-card">
+        <ErrorMessage show={true} error={error} />
+      </Card>
+    );
+  }
+
   return (
     <div>
-      <Card>
+      <Card className="password-reset-card">
         <Card.Body>
           <Form noValidate validated={validated} onSubmit={(e: TFormEvent) => handleSubmit(e)}>
             <Card.Title className="card-title-form">
-              Change Password
+              Reset Password
               <div className="button-toolbar">
                 <ButtonMain type="submit" value="Save" />
               </div>
             </Card.Title>
+            <p>Please enter your new password</p>
             <ErrorMessage show={!!err} error={err} />
-            <Form.Row>
-              <FormInput
-                required
-                type="password"
-                name="current_password"
-                label="Current Password"
-                value={current_password}
-                onChange={setCurrentPassword}
-                feebackType="invalid"
-                feebackValue="Required"
-              />
-            </Form.Row>
             <Form.Row>
               <FormInput
                 required
                 type="password"
                 name="new_password"
                 label="New Password"
-                value={new_password}
-                onChange={setNewPassword}
+                value={password}
+                onChange={setPassword}
                 feebackType="invalid"
                 feebackValue="Required"
               />
@@ -93,8 +90,8 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ success, Handle
                 type="password"
                 name="confirm_password"
                 label="Confirm Password"
-                value={confirmNewPassword}
-                onChange={setConfirmNewPassword}
+                value={confirmPassword}
+                onChange={setConfirmPassword}
                 feebackType="invalid"
                 feebackValue="Required"
               />
@@ -106,4 +103,4 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ success, Handle
   );
 };
 
-export default ChangePasswordForm;
+export default UpdatePasswordForm;

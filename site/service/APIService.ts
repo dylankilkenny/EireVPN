@@ -1,5 +1,6 @@
 import fetch from 'unfetch';
 import Auth from './Auth';
+import UpdatePassword from '../pages/forgot_pass/[token]';
 
 const FORBIDDEN = 403;
 
@@ -104,6 +105,14 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/private/user/confirm_email_resend`);
   },
 
+  async ForgotPasswordEmail(body: string) {
+    return postRequest(`${process.env.apiDomain}/api/user/forgot_pass`, body);
+  },
+
+  async UpdatePassword(body: string, token: string) {
+    return postRequest(`${process.env.apiDomain}/api/user/forgot_pass/${token}`, body);
+  },
+
   async ContactSupport(body: string) {
     return postRequest(`${process.env.apiDomain}/api/message`, body);
   },
@@ -164,7 +173,7 @@ export default {
     return putRequest(`${process.env.apiDomain}/api/protected/settings/update`, body);
   },
 
-  async UpdatePassword(body: string) {
+  async ChangePassword(body: string) {
     return putRequest(`${process.env.apiDomain}/api/private/user/changepassword`, body);
   },
 

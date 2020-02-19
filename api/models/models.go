@@ -25,5 +25,6 @@ func Get() []interface{} {
 		&Cart{},
 		&Server{},
 		&EmailToken{},
+		&ForgotPassword{},
 	}
 }

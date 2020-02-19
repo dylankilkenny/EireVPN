@@ -8,6 +8,7 @@ import useAsync from '../hooks/useAsync';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
+import Card from 'react-bootstrap/Card';
 
 export default function ConfirmEmailPage(): JSX.Element {
   const router = useRouter();
@@ -30,8 +31,10 @@ export default function ConfirmEmailPage(): JSX.Element {
         <Row>
           <Col />
           <Col>
-            <ErrorMessage show={!!error} error={error} />
-            <SuccessMessage show={!error} message="Thank you for confirming your email" />
+            <Card className="password-reset-card">
+              <ErrorMessage show={!!error} error={error} />
+              <SuccessMessage show={!error} message="Thank you for confirming your email" />
+            </Card>
           </Col>
           <Col />
         </Row>

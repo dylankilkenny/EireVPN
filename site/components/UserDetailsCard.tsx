@@ -9,6 +9,31 @@ import API from '../service/APIService';
 import { useRouter } from 'next/router';
 import Badge from 'react-bootstrap/Badge';
 
+interface ResendEmailProps {
+  emailSent: boolean;
+  email_confirmed: boolean;
+  resendEmail: () => Promise<void>;
+}
+
+const ResendEmailLink: React.FC<ResendEmailProps> = ({
+  emailSent,
+  email_confirmed,
+  resendEmail
+}) => {
+  if (!email_confirmed) {
+    if (emailSent) {
+      return <div className="email-sent">Sent!</div>;
+    } else {
+      return (
+        <div onClick={() => resendEmail()} className="email-resend">
+          Resend Confirmation Email
+        </div>
+      );
+    }
+  }
+  return <div></div>;
+};
+
 interface UserDetailsCardProps {
   userid: string;
 }
@@ -31,7 +56,7 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ userid }) => {
     }
   };
 
-  if (loading) {
+  if (loading || data == undefined) {
     return <div></div>;
   }
 
@@ -91,13 +116,11 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ userid }) => {
                 )}
               </label>
               <div id="email">{user.email}</div>
-              {!emailSent ? (
-                <div onClick={() => resendEmail()} className="email-resend">
-                  Resend Confirmation Email
-                </div>
-              ) : (
-                <div className="email-sent">Sent!</div>
-              )}
+              <ResendEmailLink
+                emailSent={emailSent}
+                email_confirmed={user.email_confirmed}
+                resendEmail={resendEmail}
+              />
             </Col>
             <Col>
               <label htmlFor="lastname">Password</label>

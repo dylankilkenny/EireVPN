@@ -495,96 +495,6 @@ func AllUsers(c *gin.Context) {
 	})
 }
 
-// ChangePassword will authenticate the users token and change their password
-func ChangePassword(c *gin.Context) {
-	// conf := cfg.Load()
-
-	cookieUserID, exists := c.Get("UserID")
-	if !exists {
-		logger.Log(logger.Fields{
-			Loc: "/user/private/changepassword - ChangePassword()",
-			Extra: map[string]interface{}{
-				"UserID": cookieUserID,
-				"Detail": "User ID does not exist in the context",
-			},
-		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-		return
-	}
-
-	var user models.User
-	user.ID = cookieUserID.(uint)
-	if err := user.Find(); err != nil {
-		logger.Log(logger.Fields{
-			Loc:   "/user/private/changepassword - ChangePassword()",
-			Code:  errors.UserNotFound.Code,
-			Extra: map[string]interface{}{"UserID": c.Param("id")},
-			Err:   err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.UserNotFound.Status, errors.UserNotFound)
-		return
-	}
-
-	type ChangePassword struct {
-		CurrentPassword string `json:"current_password" binding:"required"`
-		NewPassword     string `json:"new_password" binding:"required"`
-	}
-
-	changePassword := ChangePassword{}
-
-	if err := c.BindJSON(&changePassword); err != nil {
-		logger.Log(logger.Fields{
-			Loc:   "/user/private/changepassword - ChangePassword()",
-			Code:  errors.InvalidForm.Code,
-			Extra: map[string]interface{}{"UserID": cookieUserID},
-			Err:   err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.InvalidForm.Status, errors.InvalidForm)
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePassword.CurrentPassword)); err != nil {
-		logger.Log(logger.Fields{
-			Loc:   "/user/private/changepassword - ChangePassword()",
-			Code:  errors.WrongPassword.Code,
-			Extra: map[string]interface{}{"UserID": cookieUserID},
-			Err:   err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.WrongPassword.Status, errors.WrongPassword)
-		return
-	}
-
-	pw, err := bcrypt.GenerateFromPassword([]byte(changePassword.NewPassword), bcrypt.DefaultCost)
-	if err != nil {
-		logger.Log(logger.Fields{
-			Loc:   "/user/private/changepassword - ChangePassword()",
-			Code:  errors.InternalServerError.Code,
-			Extra: map[string]interface{}{"UserID": cookieUserID},
-			Err:   err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-		return
-	}
-
-	user.Password = string(pw)
-	if err := user.Save(); err != nil {
-		logger.Log(logger.Fields{
-			Loc:   "/user/private/changepassword - ChangePassword()",
-			Code:  errors.InternalServerError.Code,
-			Extra: map[string]interface{}{"UserID": user.ID},
-			Err:   err.Error(),
-		})
-		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": 200,
-		"errors": make([]string, 0),
-		"data":   make([]string, 0),
-	})
-}
-
 // ConfirmEmail will confirm the users email address
 // with the token sent to their inbox
 func ConfirmEmail(c *gin.Context) {
@@ -595,11 +505,11 @@ func ConfirmEmail(c *gin.Context) {
 	if err := et.Find(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/confirm_email/:token - ConfirmEmail()",
-			Code:  errors.EmailTokenNotFound.Code,
-			Extra: map[string]interface{}{"UserID": c.Param("id")},
+			Code:  errors.TokenNotFound.Code,
+			Extra: map[string]interface{}{"token": c.Param("token")},
 			Err:   err.Error(),
 		})
-		c.AbortWithStatusJSON(errors.EmailTokenNotFound.Status, errors.EmailTokenNotFound)
+		c.AbortWithStatusJSON(errors.TokenNotFound.Status, errors.TokenNotFound)
 		return
 	}
 
@@ -674,11 +584,11 @@ func ResendLink(c *gin.Context) {
 	if err := et.Find(); err != nil {
 		logger.Log(logger.Fields{
 			Loc:   "/confirm_email/resend - ResendLink()",
-			Code:  errors.EmailTokenNotFound.Code,
+			Code:  errors.TokenNotFound.Code,
 			Extra: map[string]interface{}{"UserID": c.Param("id")},
 			Err:   err.Error(),
 		})
-		c.AbortWithStatusJSON(errors.EmailTokenNotFound.Status, errors.EmailTokenNotFound)
+		c.AbortWithStatusJSON(errors.TokenNotFound.Status, errors.TokenNotFound)
 		return
 	}
 

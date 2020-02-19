@@ -1,6 +1,7 @@
 /* Header */
 body {
-  background-color: #abd1c69c;
+  background-color: #abd1c64f;
+
 }
 
 html {
@@ -391,4 +392,9 @@ html {
   margin-top: -19px;
   cursor: pointer;
   font-size: 13px;
+}
+
+.password-reset-card {
+  padding: 20px;
+  margin-top: 50px;
 }

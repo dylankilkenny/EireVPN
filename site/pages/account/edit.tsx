@@ -30,7 +30,7 @@ export default function PlansEdit(): JSX.Element {
   }
 
   async function HandlePasswordSave(body: string) {
-    const res = await API.UpdatePassword(body);
+    const res = await API.ChangePassword(body);
     if (res.status == 200) {
       setSuccess(true);
       setRespError(false);
