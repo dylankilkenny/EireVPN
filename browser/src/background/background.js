@@ -46,6 +46,8 @@ function connectProxy(proxy) {
   proxyUsername = proxy.username;
   proxyPassword = proxy.password;
   ext.proxy.settings.set({ value: proxySettings });
+  ext.browserAction.setBadgeText({ text: 'on' });
+  ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
 }
 
 function disconnectProxy() {
@@ -60,9 +62,11 @@ function disconnectProxy() {
   proxyPassword = undefined;
   const clearing = ext.proxy.settings.clear({});
   clearing.then(onCleared);
+  ext.browserAction.setBadgeText({ text: '' });
+  ext.browserAction.setBadgeBackgroundColor({ color: '' });
 }
 
-function handleMessage(request, sender, sendResponse) {
+function handleMessage(request) {
   if (request.action === 'connect') {
     connectProxy(request.data);
   } else if (request.action === 'disconnect') {

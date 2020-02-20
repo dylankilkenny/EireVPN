@@ -62,7 +62,10 @@ module.exports = [
       ...getHTMLPlugins('chrome', config.tempDirectory, config.chromePath),
       ...getCopyPlugins('chrome', config.tempDirectory, config.chromePath),
       getZipPlugin('chrome', config.distDirectory),
-      ...getDefinePlugin(JSON.stringify('http://api.eirevpn.ie'))
+      ...getDefinePlugin(
+        JSON.stringify('https://eirevpn.ie'),
+        JSON.stringify('https://api.eirevpn.ie')
+      )
     ]
   },
   {
@@ -87,7 +90,10 @@ module.exports = [
       ...getHTMLPlugins('firefox', config.tempDirectory, config.firefoxPath),
       ...getFirefoxCopyPlugins('firefox', config.tempDirectory, config.firefoxPath),
       getZipPlugin('firefox', config.distDirectory),
-      ...getDefinePlugin(JSON.stringify('http://api.eirevpn.ie'))
+      ...getDefinePlugin(
+        JSON.stringify('https://eirevpn.ie'),
+        JSON.stringify('https://api.eirevpn.ie')
+      )
     ]
   }
 ];

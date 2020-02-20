@@ -1,7 +1,7 @@
 {
     "name": "ÉireVPN Beta - Free VPN Proxy",
     "author": "ÉireVPN Team",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "manifest_version": 2,
     "description": "ÉireVPN is an irish based VPN solution",
     "icons": {

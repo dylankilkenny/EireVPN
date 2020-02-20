@@ -28,11 +28,15 @@ class Popup extends React.Component {
     const isFirefox = typeof InstallTrigger !== 'undefined';
     console.log(isFirefox);
     if (isFirefox) {
-      const allowed = await ext.extension.isAllowedIncognitoAccess();
-      if (!allowed) {
-        this.renderIcognito();
-      } else {
-        this.checkUserStatus();
+      try {
+        const allowed = await ext.extension.isAllowedIncognitoAccess();
+        if (!allowed) {
+          this.renderIcognito();
+        } else {
+          this.checkUserStatus();
+        }
+      } catch (error) {
+        console.log(error);
       }
     } else {
       this.checkUserStatus();
@@ -51,6 +55,7 @@ class Popup extends React.Component {
       server = await storage.get('server');
       renderView = views.connect;
     }
+
     this.setState({ renderView, server });
   };
 

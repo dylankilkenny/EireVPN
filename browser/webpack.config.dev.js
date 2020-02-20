@@ -57,7 +57,14 @@ module.exports = [
     plugins: [
       ...getHTMLPlugins('chrome', config.devDirectory, config.chromePath),
       ...getCopyPlugins('chrome', config.devDirectory, config.chromePath),
-      ...getDefinePlugin(JSON.stringify('http://localhost:3001'))
+      ...getDefinePlugin(
+        JSON.stringify('http://localhost:3000'),
+        JSON.stringify('http://localhost:3001')
+      )
+      // ...getDefinePlugin(
+      //   JSON.stringify('https://eirevpn.ie'),
+      //   JSON.stringify('https://api.eirevpn.ie')
+      // )
     ]
   },
   {
@@ -79,7 +86,14 @@ module.exports = [
     plugins: [
       ...getFirefoxCopyPlugins('firefox', config.devDirectory, config.firefoxPath),
       ...getHTMLPlugins('firefox', config.devDirectory, config.firefoxPath),
-      ...getDefinePlugin(JSON.stringify('http://localhost:3001'))
+      ...getDefinePlugin(
+        JSON.stringify('http://localhost:3000'),
+        JSON.stringify('http://localhost:3001')
+      )
+      // ...getDefinePlugin(
+      //   JSON.stringify('https://eirevpn.ie'),
+      //   JSON.stringify('https://api.eirevpn.ie')
+      // )
     ]
   }
 ];

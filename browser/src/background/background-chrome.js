@@ -25,6 +25,8 @@ function connectProxy(proxy) {
   proxyPassword = proxy.password;
   ext.proxy.settings.set({ value: config, scope: 'regular' }, () => {});
   console.log('connected');
+  ext.browserAction.setBadgeText({ text: 'on' });
+  ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
 }
 
 function disconnectProxy() {
@@ -32,6 +34,8 @@ function disconnectProxy() {
   proxyPassword = undefined;
   ext.proxy.settings.clear({ scope: 'regular' }, () => {});
   console.log('disconnected');
+  ext.browserAction.setBadgeText({ text: '' });
+  ext.browserAction.setBadgeBackgroundColor({ color: '' });
 }
 
 function handleMessage(request, sender, sendResponse) {

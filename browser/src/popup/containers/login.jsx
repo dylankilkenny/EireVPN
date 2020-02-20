@@ -4,10 +4,10 @@ import Col from 'react-bootstrap/Col';
 import Alert from 'react-bootstrap/Alert';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
-import API from '../services/apiService';
-import storage from '../../utils/storage';
 import { MdAccountCircle } from 'react-icons/md';
 import { IconContext } from 'react-icons';
+import API from '../services/apiService';
+import storage from '../../utils/storage';
 import ext from '../../utils/ext';
 
 class Login extends React.Component {
@@ -18,6 +18,7 @@ class Login extends React.Component {
   };
 
   async componentDidMount() {
+    console.log('login');
     const email = await storage.get('email');
     if (email) {
       this.setState({ email });
@@ -50,7 +51,12 @@ class Login extends React.Component {
   };
 
   createAccount = () => {
-    var newURL = 'http://eirevpn.ie/signup';
+    const newURL = `${process.env.DOMAIN}/signup`;
+    ext.tabs.create({ url: newURL });
+  };
+
+  forgotPass = () => {
+    const newURL = `${process.env.DOMAIN}/forgotpass`;
     ext.tabs.create({ url: newURL });
   };
 
@@ -97,6 +103,9 @@ class Login extends React.Component {
             <Button onClick={this.login} variant="secondary" className="btn-custom">
               Submit
             </Button>
+            <div onClick={() => this.forgotPass()} className="forgot-pass-link">
+              Forgot Password?
+            </div>
           </Col>
         </Row>
         <Row>

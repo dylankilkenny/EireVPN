@@ -7,10 +7,7 @@ const webpack = require('webpack');
 const getHTMLPlugins = (browserDir, outputDir = 'dev', sourceDir = 'src') => [
   new HtmlWebpackPlugin({
     title: 'Popup',
-    filename: path.resolve(
-      __dirname,
-      `${outputDir}/${browserDir}/popup/index.html`
-    ),
+    filename: path.resolve(__dirname, `${outputDir}/${browserDir}/popup/index.html`),
     template: `${sourceDir}/popup/index.html`,
     chunks: ['popup']
   })
@@ -29,10 +26,7 @@ const getEntry = (sourceDir = 'src') => ({
 
 const getChromeEntry = (sourceDir = 'src') => ({
   popup: path.resolve(__dirname, `${sourceDir}/popup/popup.jsx`),
-  background: path.resolve(
-    __dirname,
-    `${sourceDir}/background/background-chrome.js`
-  ),
+  background: path.resolve(__dirname, `${sourceDir}/background/background-chrome.js`),
   hotreload: path.resolve(__dirname, `${sourceDir}/utils/hot-reload.js`)
 });
 
@@ -53,17 +47,14 @@ const getCopyPlugins = (browserDir, outputDir = 'dev', sourceDir = 'src') => [
   ])
 ];
 
-const getDefinePlugin = url => [
+const getDefinePlugin = (domain, api) => [
   new webpack.DefinePlugin({
-    'process.env.API_URL': url
+    'process.env.API_URL': api,
+    'process.env.DOMAIN': domain
   })
 ];
 
-const getFirefoxCopyPlugins = (
-  browserDir,
-  outputDir = 'dev',
-  sourceDir = 'src'
-) => [
+const getFirefoxCopyPlugins = (browserDir, outputDir = 'dev', sourceDir = 'src') => [
   new CopyWebpackPlugin([
     {
       from: `${sourceDir}/assets`,

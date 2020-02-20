@@ -63,6 +63,8 @@ body {
     background-color: white;
     border: 1px solid #abd1c6;
     color: black;
+    border: 1px solid #e16162;
+    box-shadow: 3px 4px 2px #e16162;
 }
 
 .main-container {
@@ -195,6 +197,11 @@ body {
     box-shadow: 3px 4px 2px #abd1c6;
 }
 
+.btn-custom-logout:hover {
+    border: 1px solid #e16162;
+    box-shadow: 3px 4px 2px #e16162;
+}
+
 .server-cont-ip {
     border: 1px solid #abd1c6;
     background-color: white;
@@ -291,11 +298,26 @@ body {
 .create-acc-cont {
     margin-left: 65px;
     margin-top: 63px;
-    color: #545353;
+    color: #004643;
     font-size: 15px;
 }
 
 .create-account-link {
     cursor: pointer;
     width: 180px;
+}
+
+.create-account-link:hover {
+    opacity: 0.6;
+}
+
+.forgot-pass-link {
+    cursor: pointer;
+    color: #004643;
+    float: right;
+    margin-top: 10px;
+}
+
+.forgot-pass-link:hover {
+    opacity: 0.6;
 }
