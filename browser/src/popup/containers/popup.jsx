@@ -4,6 +4,7 @@ import Main from './main';
 import Settings from './settings';
 import Connect from './connect';
 import Incognito from './incognito';
+import Loading from './loading';
 import Header from '../components/header';
 import PopupContainer from '../components/container';
 import AuthService from '../services/authService';
@@ -21,25 +22,23 @@ const views = {
 
 class Popup extends React.Component {
   state = {
-    renderView: views.login
+    renderView: undefined
   };
 
   async componentDidMount() {
-    const isFirefox = typeof InstallTrigger !== 'undefined';
-    console.log(isFirefox);
-    if (isFirefox) {
-      try {
+    try {
+      if (!window.chrome) {
         const allowed = await ext.extension.isAllowedIncognitoAccess();
         if (!allowed) {
           this.renderIcognito();
         } else {
           this.checkUserStatus();
         }
-      } catch (error) {
-        console.log(error);
+      } else {
+        this.checkUserStatus();
       }
-    } else {
-      this.checkUserStatus();
+    } catch (error) {
+      console.log('popup.jsx: ', error);
     }
   }
 
@@ -130,12 +129,10 @@ class Popup extends React.Component {
         );
       default:
         return (
-          <div>
-            something went wrong{' '}
-            <span role="img" aria-label="cry">
-              😭
-            </span>
-          </div>
+          <PopupContainer>
+            <Header view={views.login} />
+            <Loading />
+          </PopupContainer>
         );
     }
   }

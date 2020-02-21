@@ -8,6 +8,7 @@ const apis = [
   'contextMenus',
   'cookies',
   'downloads',
+  'getBrowserInfo',
   'events',
   'extension',
   'extensionTypes',

@@ -58,12 +58,21 @@ function disconnectProxy() {
       console.log('proxy disconnect failed');
     }
   }
-  proxyUsername = undefined;
-  proxyPassword = undefined;
-  const clearing = ext.proxy.settings.clear({});
-  clearing.then(onCleared);
-  ext.browserAction.setBadgeText({ text: '' });
-  ext.browserAction.setBadgeBackgroundColor({ color: '' });
+  try {
+    proxyUsername = undefined;
+    proxyPassword = undefined;
+    const clearing = ext.proxy.settings.clear({});
+    clearing.then(onCleared);
+    // having issues with this not working in some versions of firefox (dev)
+    // to be double sure we'll set proxy back to system
+    const proxySettings = {
+      proxyType: 'system'
+    };
+    ext.proxy.settings.set({ value: proxySettings });
+    ext.browserAction.setBadgeText({ text: '' });
+  } catch (error) {
+    console.log('disconnectProxy: ', error);
+  }
 }
 
 function handleMessage(request) {
