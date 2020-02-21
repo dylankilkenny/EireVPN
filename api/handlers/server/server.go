@@ -186,7 +186,7 @@ func UpdateServer(c *gin.Context) {
 			"password": server.Password,
 		}
 		jsonStr, _ := json.Marshal(credentials)
-		url := fmt.Sprintf("http://%s:%v/update_creds", server.IP, server.Port)
+		url := fmt.Sprintf("http://%s:%v/update_creds", server.IP, 3003)
 		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 		req.Header.Set("Content-Type", "application/json")
 		client := &http.Client{}
