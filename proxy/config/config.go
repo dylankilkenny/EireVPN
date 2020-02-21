@@ -3,8 +3,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -18,13 +16,15 @@ type Config struct {
 	} `yaml:"App"`
 }
 
-var conf Config
+var configFilename string
 
-func initConfig() Config {
-	appPath, _ := os.Getwd()
-	filename, _ := filepath.Abs(appPath + "/config.yaml")
-	fmt.Println(filename)
-	yamlFile, err := ioutil.ReadFile(filename)
+func Init(filename string) {
+	configFilename = filename
+}
+
+func Load() Config {
+	conf := Config{}
+	yamlFile, err := ioutil.ReadFile(configFilename)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -35,6 +35,14 @@ func initConfig() Config {
 	return conf
 }
 
-func GetConfig() Config {
-	return initConfig()
+func (c *Config) SaveConfig() error {
+	newConf, err := yaml.Marshal(&c)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("config.yaml", newConf, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }

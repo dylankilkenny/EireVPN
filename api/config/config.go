@@ -24,6 +24,7 @@ type Config struct {
 		RefreshCookieName   string   `yaml:"RefreshCookieName"`
 		AuthTokenExpiry     int      `yaml:"AuthTokenExpiry"`
 		RefreshTokenExpiry  int      `yaml:"RefreshTokenExpiry"`
+		TestMode            bool     `yaml:"TestMode"`
 	} `yaml:"App"`
 
 	DB struct {

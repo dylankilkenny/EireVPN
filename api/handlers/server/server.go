@@ -1,9 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"eirevpn/api/config"
 	"eirevpn/api/errors"
 	"eirevpn/api/logger"
+	"encoding/json"
+	"fmt"
 
 	"eirevpn/api/models"
 	"net/http"
@@ -174,6 +177,28 @@ func UpdateServer(c *gin.Context) {
 			Err:   err.Error(),
 		})
 		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	// update proxy server with new config
+	if !config.Load().App.TestMode {
+		var credentials = map[string]string{
+			"username": server.Username,
+			"password": server.Password,
+		}
+		jsonStr, _ := json.Marshal(credentials)
+		url := fmt.Sprintf("http://%s:%v/update_creds", server.IP, server.Port)
+		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		if _, err := client.Do(req); err != nil {
+			logger.Log(logger.Fields{
+				Loc:   "/server/update/:id - UpdateServer()",
+				Code:  errors.InternalServerError.Code,
+				Extra: map[string]interface{}{"ServerID": server.ID, "Detail": "Error posting new credentials to proxy servers"},
+				Err:   err.Error(),
+			})
+			c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
