@@ -1,8 +1,15 @@
-var ENV = process.argv[2];
-const apiDomain = ENV == 'dev' ? 'http://localhost:3001' : 'https://api.eirevpn.ie';
-module.exports = {
-  env: {
-    apiDomain,
+const env = {
+  dev: {
+    apiDomain: 'http://localhost:3001',
+    GA_KEY: 'UA-158748602-1'
+  },
+  qa: {
+    apiDomain: 'https://api.qa.eirevpn.ie',
+    GA_KEY: 'UA-158748602-1'
+  },
+  prod: {
+    apiDomain: 'https://api.eirevpn.ie',
     GA_KEY: 'UA-158748602-1'
   }
 };
+module.exports = env[process.env.NODE_ENV || 'dev'];
