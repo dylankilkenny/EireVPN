@@ -27,7 +27,8 @@ class Popup extends React.Component {
 
   async componentDidMount() {
     try {
-      if (!window.chrome) {
+      // if is firefox
+      if (typeof InstallTrigger !== 'undefined') {
         const allowed = await ext.extension.isAllowedIncognitoAccess();
         if (!allowed) {
           this.renderIcognito();
