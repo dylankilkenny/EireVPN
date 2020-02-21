@@ -23,8 +23,8 @@ const UserPlanCreateForm: React.FC<UserPlanCreateFormProps> = ({
   error,
   HandleSave
 }) => {
-  const [planid, setPlanID] = useState();
-  const [active, setActive] = useState();
+  const [planid, setPlanID] = useState('');
+  const [active, setActive] = useState('');
   const [start_date, setStartDate] = useState(new Date().toString());
   const [expiry_date, setExpiryDate] = useState(new Date().toString());
 
