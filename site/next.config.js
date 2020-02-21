@@ -4,7 +4,7 @@ const env = {
     GA_KEY: 'UA-158748602-1'
   },
   qa: {
-    apiDomain: 'https://api.qa.eirevpn.ie',
+    apiDomain: 'http://api.qa.eirevpn.ie',
     GA_KEY: 'UA-158748602-1'
   },
   prod: {
