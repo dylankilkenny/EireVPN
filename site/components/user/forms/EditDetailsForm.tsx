@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form';
 import User from '../../../interfaces/user';
 import ButtonMain from '../../ButtonMain';
 import Card from 'react-bootstrap/Card';
-import FormInput from '../../admin/forms/FormInput';
+import FormInput from '../../FormInput';
 
 interface UserEditFormProps {
   user: User;

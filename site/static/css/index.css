@@ -398,3 +398,20 @@ html {
   padding: 20px;
   margin-top: 50px;
 }
+
+.t-and-c-checkbox {
+  float: left;
+  padding-bottom: 12px;
+}
+
+.link {
+  padding: 5px;
+  color: #004643;
+  text-decoration: none !important;
+  font-weight: 400;
+}
+
+.link:hover {
+  color: #004643;
+  opacity: 0.6;
+}

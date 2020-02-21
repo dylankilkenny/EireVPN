@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form';
 import ButtonMain from '../../ButtonMain';
 import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
-import FormInput from '../../admin/forms/FormInput';
+import FormInput from '../../FormInput';
 
 interface ContactFormProps {
   success: boolean;

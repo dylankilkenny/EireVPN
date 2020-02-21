@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Card from 'react-bootstrap/Card';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import Button from 'react-bootstrap/Button';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';

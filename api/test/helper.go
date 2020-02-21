@@ -54,7 +54,7 @@ func assertCorrectCode(t *testing.T, want, got string) {
 // InitDB Creates a clean test database
 func InitDB() {
 
-	conf := config.GetConfig()
+	conf := config.Load()
 
 	db.Init(conf, false, models.Get())
 	dbInstance = db.GetDB()
@@ -195,7 +195,7 @@ func GetTokens(u *models.User) (string, string, string) {
 
 // AddTokens appends tokens to http req
 func AddTokens(u *models.User, req *http.Request) {
-	conf := config.GetConfig()
+	conf := config.Load()
 	authToken, refreshToken, csrfToken := GetTokens(u)
 	if err != nil {
 		//TODO: add internal server error response here

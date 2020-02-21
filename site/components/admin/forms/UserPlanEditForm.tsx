@@ -5,9 +5,9 @@ import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 import dayjs from 'dayjs';
-import FormInput from './FormInput';
-import FormDropdown from './FormDropdown';
-import FormDatetime from './FormDatetime';
+import FormInput from '../../FormInput';
+import FormDropdown from '../../FormDropdown';
+import FormDatetime from '../../FormDatetime';
 import SuccessMessage from '../../SuccessMessage';
 import ButtonMain from '../../ButtonMain';
 

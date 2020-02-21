@@ -7,7 +7,7 @@ import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 import dayjs from 'dayjs';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import SuccessMessage from '../../SuccessMessage';
 import Router from 'next/router';
 

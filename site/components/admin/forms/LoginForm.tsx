@@ -5,7 +5,7 @@ import ErrorMessage from '../../ErrorMessage';
 import SuccessMessage from '../../SuccessMessage';
 import APIError from '../../../interfaces/error';
 import ButtonMain from '../../ButtonMain';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import { IconContext } from 'react-icons';
 import { MdAccountCircle } from 'react-icons/md';
 import Link from 'next/link';

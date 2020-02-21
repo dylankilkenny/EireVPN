@@ -35,6 +35,9 @@ func (sg *SendGrid) makeRequest() error {
 
 // RegistrationMail builds the body for sending a registration email
 func (sg *SendGrid) RegistrationMail(user models.User, token string) error {
+	if !cfg.Load().SendGrid.IntegrationActive {
+		return nil
+	}
 	m := mail.NewV3Mail()
 	address := "info@eirevpn.ie"
 	name := "ÉireVPN"
@@ -51,6 +54,9 @@ func (sg *SendGrid) RegistrationMail(user models.User, token string) error {
 
 // RegistrationMail builds the body for sending a registration email
 func (sg *SendGrid) SupportRequest(email, subject, message string) error {
+	if !cfg.Load().SendGrid.IntegrationActive {
+		return nil
+	}
 	m := mail.NewV3Mail()
 	name := "ÉireVPN Mail Service"
 	e := mail.NewEmail(name, "mailservice@eirevpn.ie")
@@ -70,6 +76,9 @@ func (sg *SendGrid) SupportRequest(email, subject, message string) error {
 // ForgotPassword builds the body for sending an email to the user
 // with a link+token to allow them to reset their password
 func (sg *SendGrid) ForgotPassword(email, token string) error {
+	if !cfg.Load().SendGrid.IntegrationActive {
+		return nil
+	}
 	m := mail.NewV3Mail()
 	address := "mailservice@eirevpn.ie"
 	name := "ÉireVPN Mail Service"
