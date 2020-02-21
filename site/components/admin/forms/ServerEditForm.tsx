@@ -92,8 +92,8 @@ const ServerEditForm: React.FC<ServerEditFormProps> = ({
               />
             </Form.Row>
             <Form.Row>
-              <FormInput name="username" label="Username" value={username} onChange={setUsername} />
-              <FormInput name="password" label="Password" value={password} onChange={setPassword} />
+              <FormInput name="svruser" label="Username" value={username} onChange={setUsername} />
+              <FormInput name="svrpass" label="Password" value={password} onChange={setPassword} />
             </Form.Row>
             <Form.Row>
               <Form.Group as={Col} controlId="image_path">

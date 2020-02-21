@@ -32,9 +32,9 @@ const TCSLink = () => {
 
 const LoginForm: React.FC<SignupFormProps> = ({ error, HandleSignup }) => {
   const [err, setError] = useState(error);
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const [confirmPassword, setConfirmPassword] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [validated, setValidated] = useState(false);
 
   // update err with the response from the server if there is any
