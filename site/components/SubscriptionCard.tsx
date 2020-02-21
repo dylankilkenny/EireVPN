@@ -20,7 +20,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ userid }) => {
     return <div></div>;
   }
 
-  const { userplan } = data;
+  const userplan = data?.userplan;
   let status = userplan.active ? 'Active' : 'Disabled';
   return (
     <Card className="dash-card">
