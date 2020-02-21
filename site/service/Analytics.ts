@@ -3,6 +3,7 @@ import ReactGA from 'react-ga';
 declare global {
   interface Window {
     GA_INITIALIZED: boolean;
+    wpcc: () => void;
   }
 }
 

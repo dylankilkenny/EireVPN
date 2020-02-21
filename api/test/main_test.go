@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestAuthTokens(t *testing.T) {
-	conf := config.GetConfig()
+	conf := config.Load()
 
 	makeRequest := func(t *testing.T, authToken, refreshToken, csrfToken string) *httptest.ResponseRecorder {
 		t.Helper()

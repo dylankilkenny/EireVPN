@@ -4,7 +4,7 @@ import Plan from '../../../interfaces/plan';
 import Card from 'react-bootstrap/Card';
 import dayjs from 'dayjs';
 import APIError from '../../../interfaces/error';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import SuccessMessage from '../../SuccessMessage';
 import ErrorMessage from '../../ErrorMessage';
 import ButtonMain from '../../ButtonMain';

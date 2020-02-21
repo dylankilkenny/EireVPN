@@ -5,8 +5,8 @@ import Settings from '../../../interfaces/settings';
 import ButtonMain from '../../ButtonMain';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
-import FormDropdown from './FormDropdown';
-import FormInput from './FormInput';
+import FormDropdown from '../../FormDropdown';
+import FormInput from '../../FormInput';
 import SuccessMessage from '../../SuccessMessage';
 
 interface SettingsFormProps {

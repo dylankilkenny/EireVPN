@@ -4,7 +4,8 @@ import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';
 import ButtonMain from '../../ButtonMain';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
+import FormCheck from '../../FormCheck';
 import Link from 'next/link';
 
 interface SignupFormProps {
@@ -13,6 +14,21 @@ interface SignupFormProps {
 }
 
 type TFormEvent = React.FormEvent<HTMLFormElement>;
+
+const TCSLink = () => {
+  return (
+    <div>
+      I agree to
+      <Link href="/policies/privacy-policy">
+        <a className="link">Privacy Policy</a>
+      </Link>
+      and
+      <Link href="/policies/terms-conditions">
+        <a className="link">Terms & Conditios.</a>
+      </Link>
+    </div>
+  );
+};
 
 const LoginForm: React.FC<SignupFormProps> = ({ error, HandleSignup }) => {
   const [err, setError] = useState(error);
@@ -89,6 +105,9 @@ const LoginForm: React.FC<SignupFormProps> = ({ error, HandleSignup }) => {
             />
           </Form.Row>
           <ErrorMessage show={!!err} error={err} />
+          <div>
+            <FormCheck name="tcs" labelEl={<TCSLink />} feedback="Required" />
+          </div>
           <ButtonMain className="w-100" type="submit" value="Submit" />
         </Form>
         <div className="signup-links-cont">

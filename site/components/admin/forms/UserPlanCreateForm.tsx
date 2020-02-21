@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import Form from 'react-bootstrap/Form';
-import FormInput from './FormInput';
-import FormDropdown from './FormDropdown';
-import FormDatetime from './FormDatetime';
+import FormInput from '../../FormInput';
+import FormDropdown from '../../FormDropdown';
+import FormDatetime from '../../FormDatetime';
 import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';

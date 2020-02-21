@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import Card from 'react-bootstrap/Card';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';

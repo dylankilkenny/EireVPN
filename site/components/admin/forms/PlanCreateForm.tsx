@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
-import FormInput from './FormInput';
-import FormDropdown from './FormDropdown';
+import FormInput from '../../FormInput';
+import FormDropdown from '../../FormDropdown';
 import ButtonMain from '../../ButtonMain';
 import ErrorMessage from '../../ErrorMessage';
 import APIError from '../../../interfaces/error';

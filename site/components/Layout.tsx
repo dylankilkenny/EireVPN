@@ -18,10 +18,36 @@ const HtmlHead = (): JSX.Element => {
   return (
     <Head>
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      <meta
+        name="description"
+        content="ÉireVPN is an irish based VPN solution with ad blocking technology baked right in. Why use 2 extensions when you can have one?"
+      />
+      <meta property="og:title" content="ÉireVPN - Free VPN & Ad Blocker" />
+      <meta
+        property="og:description"
+        content="ÉireVPN is an irish based VPN solution with ad blocking technology baked right in. Why use 2 extensions when you can have one?"
+      />
+      <meta property="og:image" content="../static/images/links-image.png" />
+      <meta property="og:site_name" content="ÉireVPN" />
+      <meta property="twitter:title" content="ÉireVPN - Free VPN & Ad Blocker" />
+      <meta
+        property="twitter:description"
+        content="ÉireVPN is an irish based VPN solution with ad blocking technology baked right in. Why use 2 extensions when you can have one?"
+      />
+      <meta property="twitter:image" content="../static/images/links-image.png" />
+      <meta name="twitter:site" content="@eirevpn" />
+      <meta name="twitter:creator" content="@eirevpn" />
+      <meta name="robots" content="index, follow" />
       <link
         href="https://fonts.googleapis.com/css?family=Fredoka+One&display=swap"
         rel="stylesheet"
       />
+      <link rel="stylesheet" type="text/css" href="//wpcc.io/lib/1.0.2/cookieconsent.min.css" />
+      <link rel="canonical" href="https://eirevpn.ie/" />
+      <script src="../static/js/cookie-policy.js"></script>
+      <script src="//wpcc.io/lib/1.0.2/cookieconsent.min.js"></script>
+      <link rel="icon" type="image/png" href="../static/images/shield.png"></link>
+      <title>ÉireVPN - Free VPN & Ad Blocker</title>
     </Head>
   );
 };

@@ -5,7 +5,7 @@ import Image from 'react-bootstrap/Image';
 import Server from '../../../interfaces/server';
 import Card from 'react-bootstrap/Card';
 import dayjs from 'dayjs';
-import FormInput from './FormInput';
+import FormInput from '../../FormInput';
 import ErrorMessage from '../../ErrorMessage';
 import SuccessMessage from '../../SuccessMessage';
 import APIError from '../../../interfaces/error';
