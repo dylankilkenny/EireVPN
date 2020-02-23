@@ -1,4 +1,4 @@
-import { HeaderUser, HeaderDashboard, HeaderLogin } from './Header';
+import { HeaderMain, HeaderDashboard } from './Header';
 import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -56,7 +56,7 @@ const LayoutLanding: React.FC<Props> = props => (
   <div>
     <HtmlHead />
     <div>
-      <HeaderUser />
+      <HeaderMain />
       {props.children}
     </div>
   </div>
@@ -65,7 +65,7 @@ const LayoutLanding: React.FC<Props> = props => (
 const LayoutLogin: React.FC<Props> = props => (
   <div>
     <HtmlHead />
-    <HeaderLogin />
+    <HeaderMain />
     <Container>
       <Row>
         <Col sm={12} md={2} lg={3}></Col>
@@ -81,7 +81,7 @@ const LayoutLogin: React.FC<Props> = props => (
 const LayoutContact: React.FC<Props> = props => (
   <div>
     <HtmlHead />
-    <HeaderUser />
+    <HeaderMain />
     <Container fluid>
       <Row>
         <Col>

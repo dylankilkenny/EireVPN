@@ -28,6 +28,8 @@ const HeaderDashboard = () => {
 
   return (
     <HeaderBase>
+      <NavLink href="/downloads" text="Downloads" />
+      <NavLink href="/contact" text="Contact Support" />
       <Navbar.Text onClick={handleLogout}>
         <a href="#">
           <div className="header-link">{loginStatus}</div>
@@ -45,7 +47,7 @@ const HeaderDashboard = () => {
   );
 };
 
-const HeaderUser = () => {
+const HeaderMain = () => {
   const [loginStatus, setLoginStatus] = useState('Login');
   const [loginLink, setLoginLink] = useState('Login');
   useEffect(() => {
@@ -55,7 +57,7 @@ const HeaderUser = () => {
 
   return (
     <HeaderBase>
-      <NavLink href="/products" text="Products" />
+      <NavLink href="/downloads" text="Downloads" />
       <NavLink href="/contact" text="Contact Support" />
       <NavLink href={loginLink} text={loginStatus} />
       <Navbar.Text>
@@ -65,10 +67,6 @@ const HeaderUser = () => {
       </Navbar.Text>
     </HeaderBase>
   );
-};
-
-const HeaderLogin = () => {
-  return <HeaderBase />;
 };
 
 const HeaderBrand = () => {
@@ -122,4 +120,4 @@ const NavLink: React.FC<NavLinkProps> = ({ href, text }) => {
   );
 };
 
-export { HeaderDashboard, HeaderUser, HeaderLogin };
+export { HeaderDashboard, HeaderMain };

@@ -1,6 +1,5 @@
 import fetch from 'unfetch';
 import Auth from './Auth';
-import UpdatePassword from '../pages/forgot_pass/[token]';
 
 const FORBIDDEN = 403;
 

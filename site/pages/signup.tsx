@@ -10,7 +10,7 @@ export default function SignupPage(): JSX.Element {
   async function HandleSignup(body: string) {
     const res = await API.Signup(body);
     if (res.status == 200) {
-      Router.push('/login?signedup=1');
+      Router.push('/downloads?signedup=1');
     } else {
       setError(res);
     }

@@ -139,6 +139,14 @@ html {
   padding-top: 90px;
 }
 
+.downloads-heading {
+  font-family: 'Helvetica';
+  letter-spacing: 0.03em;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  text-align: center;
+}
+
 .p-landing {
   color: #abd1c6;
   font-size: 30px;
@@ -414,4 +422,25 @@ html {
 .link:hover {
   color: #004643;
   opacity: 0.6;
+}
+
+.img-browser {
+  margin-left: 30%;
+  width: 40%;
+}
+
+.btn-downloads {
+  background-color: #e16162;
+  border-color: #e16162;
+  color: #fffffe;
+  font-size: 25px;
+  letter-spacing: 0.03em;
+  margin-top: 10%;
+}
+
+.btn-downloads:hover {
+  color: #fffffe;
+  background-color: #e16162;
+  opacity: 0.6;
+  border-color: #e16162;
 }

@@ -25,8 +25,8 @@ const IsLoggedIn = () => {
   return false;
 };
 
-const Logout = async () => {
-  const res = await API.Logout();
+const Logout = () => {
+  const res = API.Logout();
   ClearAndRedirect();
 };
 

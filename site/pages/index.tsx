@@ -4,6 +4,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Link from 'next/link';
 
 export default function LandingPage() {
   return (
@@ -16,9 +17,11 @@ export default function LandingPage() {
               <p className="p-landing">
                 Safely secure your browsing and enjoy unrestricted access worldwide.
               </p>
-              <Button className="btn-landing" variant="primary">
-                Try Free
-              </Button>
+              <Link href="/signup">
+                <Button className="btn-landing" variant="primary">
+                  Try Free
+                </Button>
+              </Link>
             </Col>
             <Col xs={12} md={6}>
               <Image
