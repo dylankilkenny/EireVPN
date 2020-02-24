@@ -51,12 +51,12 @@ class Login extends React.Component {
   };
 
   createAccount = () => {
-    const newURL = `${process.env.DOMAIN}/signup`;
+    const newURL = `${process.env.DOMAIN}/signup?from=ext`;
     ext.tabs.create({ url: newURL });
   };
 
   forgotPass = () => {
-    const newURL = `${process.env.DOMAIN}/forgotpass`;
+    const newURL = `${process.env.DOMAIN}/forgotpass?from=ext`;
     ext.tabs.create({ url: newURL });
   };
 

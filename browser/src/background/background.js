@@ -4,28 +4,6 @@ let proxyUsername;
 let proxyPassword;
 const pendingRequests = [];
 
-// A request has completed.
-// We can stop worrying about it.
-function completed(requestDetails) {
-  const index = pendingRequests.indexOf(requestDetails.requestId);
-  if (index > -1) {
-    pendingRequests.splice(index, 1);
-  }
-}
-
-function provideAuth(requestDetails) {
-  // If we have seen this request before, then
-  // assume our credentials were bad, and give up.
-  if (pendingRequests.indexOf(requestDetails.requestId) !== -1) {
-    console.log(`bad credentials: auth+${proxyUsername}+${proxyPassword}`);
-    return { cancel: true };
-  }
-  pendingRequests.push(requestDetails.requestId);
-  return {
-    authCredentials: { username: proxyUsername, password: proxyPassword }
-  };
-}
-
 function rewriteUserAgentHeader(e) {
   if (e.documentUrl.includes('extension')) {
     for (const header of e.requestHeaders) {
@@ -41,13 +19,19 @@ function connectProxy(proxy) {
   const proxySettings = {
     proxyType: 'manual',
     httpProxyAll: true,
-    http: `http://${proxy.username}:${proxy.password}@${proxy.ip}:${proxy.port}`
+    http: `http://${proxy.ip}:${proxy.port}`
   };
   proxyUsername = proxy.username;
   proxyPassword = proxy.password;
+  console.log(proxySettings);
   ext.proxy.settings.set({ value: proxySettings });
   ext.browserAction.setBadgeText({ text: 'on' });
   ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
+  // create initial auth request. Issues were arising where
+  // the onAuthRequired function wasnt working unless the extension was reopened
+  // and a request made to our servers. Hacky workaround is to just make a request
+  // to our servers when connected.
+  fetch('https://api.eirevpn.ie');
 }
 
 function disconnectProxy() {
@@ -81,6 +65,34 @@ function handleMessage(request) {
   } else if (request.action === 'disconnect') {
     disconnectProxy();
   }
+}
+
+// A request has completed.
+// We can stop worrying about it.
+function completed(requestDetails) {
+  const index = pendingRequests.indexOf(requestDetails.requestId);
+  if (index > -1) {
+    pendingRequests.splice(index, 1);
+  }
+}
+
+function provideAuth(requestDetails) {
+  console.log('provideAuth');
+  // If we have seen this request before, then
+  // assume our credentials were bad, and give up.
+  if (proxyUsername === undefined || proxyPassword === undefined) {
+    console.log('proxyUsername or proxyPassword not defined');
+    disconnectProxy();
+  }
+  if (pendingRequests.indexOf(requestDetails.requestId) !== -1) {
+    console.log(`bad credentials: auth+${proxyUsername}+${proxyPassword}`);
+    return { cancel: true };
+  }
+
+  pendingRequests.push(requestDetails.requestId);
+  return {
+    authCredentials: { username: proxyUsername, password: proxyPassword }
+  };
 }
 
 ext.runtime.onMessage.addListener(handleMessage);

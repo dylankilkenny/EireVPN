@@ -1,7 +1,7 @@
 {
     "name": "ÉireVPN Beta - Free VPN & Ad Blocker",
     "author": "ÉireVPN Team",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "manifest_version": 2,
     "description": "ÉireVPN is an irish based VPN solution with ad blocking technology baked right in. Why use 2 extensions when you can have one?",
     "icons": {
