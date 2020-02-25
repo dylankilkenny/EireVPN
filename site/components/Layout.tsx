@@ -1,4 +1,5 @@
 import { HeaderMain, HeaderDashboard } from './Header';
+import Footer from './Footer';
 import Head from 'next/head';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -52,18 +53,17 @@ const HtmlHead = (): JSX.Element => {
   );
 };
 
-const LayoutLanding: React.FC<Props> = props => (
-  <div>
+const LayoutMain: React.FC<Props> = props => (
+  <div className="main-container">
     <HtmlHead />
-    <div>
-      <HeaderMain />
-      {props.children}
-    </div>
+    <HeaderMain />
+    {props.children}
+    <Footer />
   </div>
 );
 
 const LayoutLogin: React.FC<Props> = props => (
-  <div>
+  <div className="main-container">
     <HtmlHead />
     <HeaderMain />
     <Container>
@@ -75,20 +75,7 @@ const LayoutLogin: React.FC<Props> = props => (
         <Col sm={12} md={2} lg={3}></Col>
       </Row>
     </Container>
-  </div>
-);
-
-const LayoutContact: React.FC<Props> = props => (
-  <div>
-    <HtmlHead />
-    <HeaderMain />
-    <Container fluid>
-      <Row>
-        <Col>
-          <div className="account-dash">{props.children}</div>
-        </Col>
-      </Row>
-    </Container>
+    <Footer />
   </div>
 );
 
@@ -97,7 +84,7 @@ interface UserDashProps {
 }
 
 const LayoutUserDash: React.FC<UserDashProps> = ({ children }) => (
-  <div>
+  <div className="main-container">
     <HtmlHead />
     <HeaderDashboard />
     <div className="account-layout">
@@ -111,6 +98,7 @@ const LayoutUserDash: React.FC<UserDashProps> = ({ children }) => (
         </Row>
       </Container>
     </div>
+    <Footer />
   </div>
 );
 
@@ -120,7 +108,7 @@ interface AdminDashProps {
 }
 
 const LayoutAdminDash: React.FC<AdminDashProps> = ({ AdminSidePanel, children }) => (
-  <div>
+  <div className="main-container">
     <HtmlHead />
     <HeaderDashboard />
     <div className="admin-layout">
@@ -135,7 +123,8 @@ const LayoutAdminDash: React.FC<AdminDashProps> = ({ AdminSidePanel, children })
         </Row>
       </Container>
     </div>
+    <Footer />
   </div>
 );
 
-export { LayoutLanding, LayoutLogin, LayoutAdminDash, LayoutUserDash, LayoutContact };
+export { LayoutMain, LayoutLogin, LayoutAdminDash, LayoutUserDash };

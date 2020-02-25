@@ -1,4 +1,4 @@
-import { LayoutLanding } from '../components/Layout';
+import { LayoutMain } from '../components/Layout';
 import Image from 'react-bootstrap/Image';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function LandingPage() {
   return (
-    <LayoutLanding>
+    <LayoutMain>
       <div className="landing-page">
         <Container>
           <Row>
@@ -24,15 +24,13 @@ export default function LandingPage() {
               </Link>
             </Col>
             <Col xs={12} md={6}>
-              <Image
-                style={{ marginTop: 90 }}
-                fluid
-                src="../static/images/undraw_security_o890.png"
-              />
+              <div className="landing-image-cont">
+                <Image fluid src="../static/images/undraw_security_o890.png" />
+              </div>
             </Col>
           </Row>
         </Container>
       </div>
-    </LayoutLanding>
+    </LayoutMain>
   );
 }

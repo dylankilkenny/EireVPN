@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutContact } from '../components/Layout';
+import { LayoutMain } from '../components/Layout';
 import Image from 'react-bootstrap/Image';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -23,7 +23,7 @@ export default function ContactPage(): JSX.Element {
     }
   }
   return (
-    <LayoutContact>
+    <LayoutMain>
       <div className="contact-cont">
         <ErrorMessage show={!!error} error={error} />
         <SuccessMessage
@@ -44,6 +44,6 @@ export default function ContactPage(): JSX.Element {
           </Row>
         </Container>
       </div>
-    </LayoutContact>
+    </LayoutMain>
   );
 }

@@ -4,8 +4,11 @@ body {
 
 }
 
-html {
-  height: 100%;
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
 }
 
 .navbar-cust {
@@ -20,6 +23,7 @@ html {
   color: #f9bc60;
   letter-spacing: 0.06em;
   margin-bottom: 4px;
+  float: left;
 }
 
 .header-link {
@@ -46,6 +50,14 @@ html {
   background-color: #abd1c6;
   color: #004643;
   vertical-align: middle;
+}
+
+.footer {
+  background-color: #004643;
+  font-family: Helvetica;
+  color: #abd1c6;
+  padding: 15px;
+  margin-top: auto;
 }
 
 /* Hamburger Icons */
@@ -97,14 +109,15 @@ html {
 /*Signup*/
 
 .signup-cont {
-  margin-top: 40px;
+  margin-top: 50px;
+  margin-bottom: 80px;
 }
 
 /*Landing*/
 
 .landing-page {
   background-color: #004643;
-  height: 100vh;
+  padding-bottom: 100px;
 }
 
 .btn-landing {
@@ -443,4 +456,20 @@ html {
   background-color: #e16162;
   opacity: 0.6;
   border-color: #e16162;
+}
+
+.landing-image-cont {
+  padding-top: 90px;
+  height: auto;
+  overflow: hidden;
+}
+
+.contact-cont {
+  margin-bottom: 60px;
+  margin-top: 60px;
+}
+
+.downloads-cont {
+  margin-bottom: 60px;
+  margin-top: 60px;
 }

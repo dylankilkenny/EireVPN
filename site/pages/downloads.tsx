@@ -1,4 +1,4 @@
-import { LayoutLanding } from '../components/Layout';
+import { LayoutMain } from '../components/Layout';
 import Image from 'react-bootstrap/Image';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -16,12 +16,12 @@ export default function DownloadsPage() {
   const firefoxLink =
     'https://addons.mozilla.org/en-US/firefox/addon/%C3%A9irevpn-free-vpn-ad-blocker/';
   return (
-    <LayoutLanding>
-      <div className="">
+    <LayoutMain>
+      <div className="downloads-cont">
         <Container>
           <Row>
             <Col xs={12} md={6}>
-              <Image style={{ marginTop: 90 }} fluid src="../static/images/download.png" />
+              <Image style={{ marginTop: 20 }} fluid src="../static/images/download.png" />
             </Col>
             <Col xs={12} md={6}>
               <Row>
@@ -70,6 +70,6 @@ export default function DownloadsPage() {
           </Row>
         </Container>
       </div>
-    </LayoutLanding>
+    </LayoutMain>
   );
 }
