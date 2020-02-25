@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutLanding } from '../../components/Layout';
+import { LayoutMain } from '../../components/Layout';
 import { useRouter } from 'next/router';
 import API from '../../service/APIService';
 import Row from 'react-bootstrap/Row';
@@ -31,7 +31,7 @@ export default function UpdatePassword(): JSX.Element {
   });
 
   return (
-    <LayoutLanding>
+    <LayoutMain>
       <Container>
         <Row>
           <Col />
@@ -41,7 +41,7 @@ export default function UpdatePassword(): JSX.Element {
           <Col />
         </Row>
       </Container>
-    </LayoutLanding>
+    </LayoutMain>
   );
 }
 
