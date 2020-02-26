@@ -49,11 +49,10 @@ func startAPI() {
 }
 
 func startProxy() {
-	config := c.Load()
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = true
 	auth.ProxyBasic(proxy, "Auth", func(user, passwd string) bool {
-		if user == config.App.ProxyUsername && passwd == config.App.ProxyPassword {
+		if user == c.Load().App.ProxyUsername && passwd == c.Load().App.ProxyPassword {
 			fmt.Println("Authenticated, allowing connection.")
 			return true
 		}
@@ -61,5 +60,5 @@ func startProxy() {
 		return false
 	})
 	fmt.Println("Proxy Started")
-	log.Fatal(http.ListenAndServe(":"+config.App.ProxyPort, proxy))
+	log.Fatal(http.ListenAndServe(":"+c.Load().App.ProxyPort, proxy))
 }
