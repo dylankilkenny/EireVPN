@@ -1,26 +1,42 @@
 App:
   Port: '3001'
-  Domain: localhost
+  Domain: eirevpn.ie
   JWTSecret: secretkey1995
   AllowedOrigins:
-    - http://localhost/
-  EnableCSRF: false
+    - http://localhost:3000
+    - http://localhost:3001
+    - https://eirevpn.ie
+    - https://www.eirevpn.ie
+    - https://api.eirevpn.ie
+    - chrome-extension://pplkeenpmmifelccendefanihacjnpnb
+    - chrome-extension://fmhlhjegfkgemampnpomkajhdpjnhmie
+    - moz-extension://extensions@eirevpn.ie
+  EnableCSRF: true
   EnableSubscriptions: false
-  EnableAuth: false
+  EnableAuth: true
   AuthCookieAge: 168
+  RefreshCookieAge: 168
   AuthCookieName: authToken
-  AuthTokenExpiry: 48
-
+  RefreshCookieName: refreshToken
+  AuthTokenExpiry: 1
+  RefreshTokenExpiry: 48
+  TestMode: true
 DB:
-  User: eirevpn_dev
-  Password: eirevpn_dev
-  Database: eirevpn_dev
+  User: eirevpn_prod
+  Password: eirevpn_prod
+  Database: eirevpn_prod
   Host: localhost
-  Port: 5432
-
+  Port: 5432s
 Stripe:
   SecretKey: sk_test_sssssssssss
   EndpointSecret: whsec_ssssssssss
   IntegrationActive: false
   SuccessUrl: https://eirevpn.ie/success
   ErrorUrl: https://eirevpn.ie/error
+SendGrid:
+  APIKey: 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
+  IntegrationActive: true
+  Templates:
+    Registration: d-e2a3e60211f4430ab68a36ac7191475f
+    SupportRequest: d-c459bbe9dcfe44c1a5967f7b1cb01f8c
+    ForgotPassword: d-48668daa6afa4e3c842b9d2bb5406fef
