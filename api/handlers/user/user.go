@@ -470,9 +470,9 @@ func SignUpUser(c *gin.Context) {
 
 // AllUsers returns an array of all user
 func AllUsers(c *gin.Context) {
+	offset, _ := strconv.Atoi(c.Query("offset"))
 	var users models.AllUsers
-
-	if err := users.FindAll(); err != nil {
+	if err := users.FindAll(offset); err != nil {
 		logger.Log(logger.Fields{
 			Loc:  "/plans - AllUsers()",
 			Code: errors.InternalServerError.Code,
@@ -487,9 +487,20 @@ func AllUsers(c *gin.Context) {
 		users[i] = u
 	}
 
+	count, err := users.Count()
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/servers - Connections()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data": gin.H{
+			"count": count,
 			"users": users,
 		},
 	})

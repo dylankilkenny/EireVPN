@@ -120,8 +120,8 @@ export default {
     return getRequest(`${process.env.apiDomain}/api/protected/settings`);
   },
 
-  async GetUsersList() {
-    return getRequest(`${process.env.apiDomain}/api/protected/users`);
+  async GetUsersList(offset: number) {
+    return getRequest(`${process.env.apiDomain}/api/protected/users?offset=${offset}`);
   },
 
   async GetPlansList() {
@@ -130,6 +130,10 @@ export default {
 
   async GetServersList() {
     return getRequest(`${process.env.apiDomain}/api/private/servers`);
+  },
+
+  async GetConnectionsList(offset: number) {
+    return getRequest(`${process.env.apiDomain}/api/protected/server_connections?offset=${offset}`);
   },
 
   async GetUserPlansList() {

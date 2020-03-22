@@ -26,5 +26,6 @@ func Get() []interface{} {
 		&Server{},
 		&EmailToken{},
 		&ForgotPassword{},
+		&Connection{},
 	}
 }

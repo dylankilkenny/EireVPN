@@ -62,11 +62,20 @@ func (u *User) CreateStripeCustomer() (*stripego.Customer, error) {
 	return stripe.CreateCustomer(u.Email, u.FirstName, u.LastName, u.ID)
 }
 
-func (au *AllUsers) FindAll() error {
-	if err := db().Find(&au).Error; err != nil {
+func (au *AllUsers) FindAll(offset int) error {
+	limit := 20
+	if err := db().Order("created_at desc").Limit(limit).Offset(offset).Find(&au).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+func (au *AllUsers) Count() (*int, error) {
+	var count int
+	if err := db().Model(&AllUsers{}).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	return &count, nil
 }
 
 // BeforeCreate sets the CreatedAt column to the current time

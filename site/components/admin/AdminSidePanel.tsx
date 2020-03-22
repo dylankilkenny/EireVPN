@@ -26,6 +26,11 @@ export default function AdminSidePanel(): JSX.Element {
           </Link>
         </li>
         <li>
+          <Link href="/admin/connections">
+            <a>Connections</a>
+          </Link>
+        </li>
+        <li>
           <Link href="/admin/settings">
             <a>Settings</a>
           </Link>

@@ -94,6 +94,7 @@ func Init(logging bool) *gin.Engine {
 	protected.POST("/servers/create", server.CreateServer)
 	protected.PUT("/servers/update/:id", server.UpdateServer)
 	protected.DELETE("/servers/delete/:id", server.DeleteServer)
+	protected.GET("/server_connections", server.Connections)
 	private.GET("/servers/connect/:id", server.Connect)
 	private.GET("/servers", server.AllServers)
 

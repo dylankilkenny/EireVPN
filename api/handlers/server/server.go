@@ -270,6 +270,22 @@ func Connect(c *gin.Context) {
 		}
 	}
 
+	var con models.Connection
+	con.UserID = userID.(uint)
+	con.ServerID = server.ID
+	con.ServerCountry = server.Country
+	if err := con.Create(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/server/connect/:id - Connect()",
+			Code: errors.InternalServerError.Code,
+			Extra: map[string]interface{}{
+				"UserID": con.UserID,
+				"Detail": "Could not add connection request to db",
+			},
+			Err: err.Error(),
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
 		"data": gin.H{
@@ -280,6 +296,66 @@ func Connect(c *gin.Context) {
 		},
 	})
 
+}
+
+// FreeConnect returns a username and password for the server
+func FreeConnect(c *gin.Context) {
+	serverID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	var server models.Server
+	server.ID = uint(serverID)
+	if err := server.Find(); err != nil {
+		logger.Log(logger.Fields{
+			Loc:   "/server/:id - Server()",
+			Code:  errors.ServerNotFound.Code,
+			Extra: map[string]interface{}{"ConnID": c.Param("id")},
+			Err:   err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.ServerNotFound.Status, errors.ServerNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"data": gin.H{
+			"username": server.Username,
+			"password": server.Password,
+			"port":     server.Port,
+			"ip":       server.IP,
+		},
+	})
+
+}
+
+// Connections returns an array of all server connections
+func Connections(c *gin.Context) {
+	offset, _ := strconv.Atoi(c.Query("offset"))
+	var connections models.AllConnections
+	if err := connections.FindAll(offset); err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/servers - Connections()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	count, err := connections.Count()
+	if err != nil {
+		logger.Log(logger.Fields{
+			Loc:  "/servers - Connections()",
+			Code: errors.InternalServerError.Code,
+			Err:  err.Error(),
+		})
+		c.AbortWithStatusJSON(errors.InternalServerError.Status, errors.InternalServerError)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"data": gin.H{
+			"count":       count,
+			"connections": connections,
+		},
+	})
 }
 
 // AllServers returns an array of all available servers

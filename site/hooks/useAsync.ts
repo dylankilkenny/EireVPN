@@ -13,7 +13,7 @@ const fetchError: Error = {
   detail: 'Something Went Wrong'
 };
 
-export default function useAsync(makeRequestFunc: MakeRequestFunc) {
+export default function useAsync<T>(makeRequestFunc: MakeRequestFunc, dependency?: T[]) {
   const controller = new AbortController();
   const [data, setData] = useState();
   const [error, setError] = useState();
@@ -35,9 +35,15 @@ export default function useAsync(makeRequestFunc: MakeRequestFunc) {
       setloading(false);
     }
   }
-  useEffect(() => {
-    asyncCall();
-  }, []);
+  if (dependency) {
+    useEffect(() => {
+      asyncCall();
+    }, [...dependency]);
+  } else {
+    useEffect(() => {
+      asyncCall();
+    }, []);
+  }
 
   return { data, loading, error };
 }
