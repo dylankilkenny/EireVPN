@@ -1,4 +1,5 @@
 /* global browser, window, chrome */
+import 'regenerator-runtime/runtime';
 import ext from './ext';
 
 export default {

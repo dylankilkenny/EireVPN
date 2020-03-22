@@ -321,3 +321,7 @@ body {
 .forgot-pass-link:hover {
     opacity: 0.6;
 }
+
+.center {
+    text-align: center;
+}

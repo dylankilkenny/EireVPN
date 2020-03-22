@@ -1,7 +1,19 @@
 import ext from '../utils/ext';
+import storage from '../utils/storage';
+import util from './util';
 
 let proxyUsername;
 let proxyPassword;
+
+function disconnectProxy() {
+  proxyUsername = undefined;
+  proxyPassword = undefined;
+  ext.proxy.settings.clear({ scope: 'regular' }, () => {});
+  console.log('disconnected');
+  ext.browserAction.setBadgeText({ text: '' });
+  ext.browserAction.setBadgeBackgroundColor({ color: '#0000' });
+  storage.set({ connected: false, server: undefined, ip: '' });
+}
 
 function connectProxy(proxy) {
   const config = {
@@ -16,23 +28,17 @@ function connectProxy(proxy) {
   proxyUsername = proxy.username;
   proxyPassword = proxy.password;
   ext.proxy.settings.set({ value: config, scope: 'regular' }, () => {});
-  console.log('connected');
   ext.browserAction.setBadgeText({ text: 'on' });
   ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
-  // create initial auth request. Issues were arising where
-  // the onAuthRequired function wasnt working unless the extension was reopened
-  // and a request made to our servers. Hacky workaround is to just make a request
-  // to our servers when connected.
-  fetch('https://api.eirevpn.ie');
-}
-
-function disconnectProxy() {
-  proxyUsername = undefined;
-  proxyPassword = undefined;
-  ext.proxy.settings.clear({ scope: 'regular' }, () => {});
-  console.log('disconnected');
-  ext.browserAction.setBadgeText({ text: '' });
-  ext.browserAction.setBadgeBackgroundColor({ color: '' });
+  util
+    .timeout(1500, fetch('https://api.eirevpn.ie/api/plans'))
+    .then(() => {})
+    .catch(error => {
+      console.log(error);
+      storage.set({ proxy_error: true });
+      disconnectProxy();
+    });
+  console.log('connected');
 }
 
 function setAuth(details, callbackFn) {
@@ -42,6 +48,7 @@ function setAuth(details, callbackFn) {
     });
   } else {
     console.log('proxyUsername or proxyPassword not defined');
+    storage.set({ proxy_error: true });
     disconnectProxy();
   }
 }
@@ -50,6 +57,7 @@ function handleMessage(request, sender, sendResponse) {
   if (request.action === 'connect') {
     connectProxy(request.data);
   } else if (request.action === 'disconnect') {
+    storage.set({ proxy_error: true });
     disconnectProxy();
   }
   sendResponse(true);

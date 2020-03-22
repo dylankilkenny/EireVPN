@@ -1,4 +1,6 @@
 import ext from '../utils/ext';
+import storage from '../utils/storage';
+import util from './util';
 
 let proxyUsername;
 let proxyPassword;
@@ -14,26 +16,6 @@ function rewriteUserAgentHeader(e) {
   }
   return { requestHeaders: e.requestHeaders };
 }
-
-function connectProxy(proxy) {
-  const proxySettings = {
-    proxyType: 'manual',
-    httpProxyAll: true,
-    http: `http://${proxy.ip}:${proxy.port}`
-  };
-  proxyUsername = proxy.username;
-  proxyPassword = proxy.password;
-  console.log(proxySettings);
-  ext.proxy.settings.set({ value: proxySettings });
-  ext.browserAction.setBadgeText({ text: 'on' });
-  ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
-  // create initial auth request. Issues were arising where
-  // the onAuthRequired function wasnt working unless the extension was reopened
-  // and a request made to our servers. Hacky workaround is to just make a request
-  // to our servers when connected.
-  fetch('https://api.eirevpn.ie');
-}
-
 function disconnectProxy() {
   function onCleared(result) {
     if (result) {
@@ -54,9 +36,37 @@ function disconnectProxy() {
     };
     ext.proxy.settings.set({ value: proxySettings });
     ext.browserAction.setBadgeText({ text: '' });
+    storage.set({ connected: false, server: undefined, ip: '' });
   } catch (error) {
     console.log('disconnectProxy: ', error);
   }
+}
+
+function connectProxy(proxy) {
+  const proxySettings = {
+    proxyType: 'manual',
+    httpProxyAll: true,
+    http: `http://${proxy.ip}:${proxy.port}`
+  };
+  proxyUsername = proxy.username;
+  proxyPassword = proxy.password;
+  ext.proxy.settings.set({ value: proxySettings });
+  ext.browserAction.setBadgeText({ text: 'on' });
+  ext.browserAction.setBadgeBackgroundColor({ color: 'green' });
+  // create initial auth request. Issues were arising where
+  // the onAuthRequired function wasnt working unless the extension was reopened
+  // and a request made to our servers. Hacky workaround is to just make a request
+  // to our servers when connected.
+  util
+    .timeout(1500, fetch('https://api.eirevpn.ie/api/plans'))
+    .then(r => {
+      console.log(r);
+    })
+    .catch(error => {
+      console.log(error);
+      storage.set({ proxy_error: true });
+      disconnectProxy();
+    });
 }
 
 function handleMessage(request) {
@@ -82,10 +92,13 @@ function provideAuth(requestDetails) {
   // assume our credentials were bad, and give up.
   if (proxyUsername === undefined || proxyPassword === undefined) {
     console.log('proxyUsername or proxyPassword not defined');
+    storage.set({ proxy_error: true });
     disconnectProxy();
   }
   if (pendingRequests.indexOf(requestDetails.requestId) !== -1) {
     console.log(`bad credentials: auth+${proxyUsername}+${proxyPassword}`);
+    storage.set({ proxy_error: true });
+    disconnectProxy();
     return { cancel: true };
   }
 
